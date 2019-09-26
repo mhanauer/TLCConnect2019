@@ -1,4 +1,3 @@
-# TLCConnect2019
 ---
 title: "TLC Connect 2019"
 output:
@@ -29,10 +28,15 @@ head(tlc_data)
 ```
 Now grab the variables that you want
 YouthID, Age, Gender, HispanicLatino, RaceEthnicity, SexualOrientation, RAS_B_D's, INQ_B_D's, SSMI_B_D's, SIS_B_D's, PHQ9_1 and PHQ9_4, CSSRS1, and CSSRS4 (probably get rid of this var)
+
+ReferralsEngaged, AttendFirstAppointment, SuicidalityWarrentingCrisisVisit
 ```{r}
 describe.factor(tlc_data$CSSRS1)
 describe.factor(tlc_data$CSSRS4)
+describe.factor(tlc_data$AttemptSuicide)
+head(tlc_data)
 tlc_data_analysis = tlc_data[,c(1,2,5:9, 11, 13:56, 69:112,118,124)]
+tlc_data_analysis = data.frame(tlc_data_analysis, ReferralsEngaged = tlc_data$ReferralsEngaged, AttendFirstAppointment =  tlc_data$AttendFirstAppointment)
 head(tlc_data_analysis)
 ```
 Check all variables are within the ranges
@@ -79,9 +83,9 @@ SIS_diff = SIS_d_average-SIS_b_average
 sum(is.na(SIS_diff))
 PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
 sum(is.na(PHQ9_diff))
-
+head(tlc_data_analysis)
 #### Create new data with average scores
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8)], RAS_diff, INQ_diff, SSMI_diff, SIS_diff, PHQ9_diff)
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:100)], RAS_diff, INQ_diff, SSMI_diff, SIS_diff, PHQ9_diff)
 head(tlc_data_analysis_average)
 ```
 Evaluate missing data
@@ -97,6 +101,7 @@ dim(tlc_data_analysis_average)
 miss_var_summary(tlc_data_analysis_average)
 tlc_complete = na.omit(tlc_data_analysis_average)
 1- (dim(tlc_complete)[1]/dim(tlc_data_analysis_average)[1])
+dim(tlc_complete)[1]
 ```
 Descriptive statistics
 ```{r}
@@ -106,6 +111,9 @@ describe.factor(tlc_complete$Gender)
 describe.factor(tlc_complete$HispanicLatino)
 describe.factor(tlc_complete$RaceEthnicity)
 describe.factor(tlc_complete$SexualOrientation)
+describe.factor(tlc_complete$ReferralsEngaged)
+describe.factor(tlc_complete$AttendFirstAppointment)
+head(tlc_complete)
 ```
 Indiviudal treatment models
 Put together model for each of the outcomes.  Then run loop on the outcomes
@@ -115,15 +123,80 @@ outcomes_t1 = tlc_complete_t1[,7:11]
 
 results_t1 = list()
 for(i in 1:length(outcomes_t1)){
-  results_t1[[i]] = summary(stan_glm(outcomes_t1[[1]] ~ 1, data = outcomes_t1))
-  
+  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ 1, data = outcomes_t1))
 }
-seq_along(outcomes_t1)
-
 results_t1
 
+tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
+outcomes_t2 = tlc_complete_t2[,7:11]
+
+results_t2 = list()
+for(i in 1:length(outcomes_t2)){
+  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2))
+}
+results_t2
+
+tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
+outcomes_t3 = tlc_complete_t3[,7:11]
+
+results_t3 = list()
+for(i in 1:length(outcomes_t3)){
+  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3))
+}
+results_t3
 
 ```
+Is the indiviudal program change score affected by 
+```{r}
+tlc_complete_covar_t1 = subset(tlc_complete, TXPackageAssigned == 1)
+outcomes_t1 = tlc_complete_covar_t1[,7:11]
+results_covar_t1 = list()
+for(i in 1:length(outcomes_t1)){
+  results_covar_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ ReferralsEngaged + AttendFirstAppointment, data = outcomes_t1))
+}
+results_covar_t1
+
+tlc_complete_covar_t2 = subset(tlc_complete, TXPackageAssigned == 2)
+outcomes_t2 = tlc_complete_covar_t2[,7:11]
+
+results_covar_t2 = list()
+for(i in 1:length(outcomes_t2)){
+  results_covar_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~  ReferralsEngaged + AttendFirstAppointment, data = outcomes_t2))
+}
+results_covar_t2
+
+tlc_complete_covar_t3 = subset(tlc_complete, TXPackageAssigned == 3)
+outcomes_t3 = tlc_complete_covar_t3[,7:11]
+
+results_covar_t3 = list()
+for(i in 1:length(outcomes_t3)){
+  results_covar_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ ReferralsEngaged + AttendFirstAppointment, data = outcomes_t3))
+}
+results_covar_t3
+```
+
+
+
+Now comparison models for each 
+Need to figure out how to grab the effects and compare them
+Contrasts are asking whether t3-t2
+```{r}
+outcomes_all = tlc_complete[,7:11]
+results_all = list()
+contrasts_all = list()
+for(i in 1:length(outcomes)){
+  results_all[[i]] = summary(stan_glm(outcomes[[i]] ~ factor(TXPackageAssigned), data = tlc_complete))
+  contrasts_all[[i]] = as.data.frame(results_all[[i]])
+  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,3]-contrasts_all[[i]][,2])
+  contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
+}
+contrasts_all
+results_all
+
+```
+
+
+
 You can use 1 in the regression and get a test of mean differences for Bayesian linear regression
 ```{r}
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
