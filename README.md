@@ -117,7 +117,9 @@ head(tlc_complete)
 Figure out this question
 referrals will be retained at least 50% of the time among youth enrolled in the post-crisis follow-up intervention and follow-through with appointments will occur at least 75% of the time
 ```{r}
-
+tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,1,0)
+describe.factor(tlc_complete$ReferralsEngaged_binary)
+describe.factor(tlc_complete$Attend75Referrals)
 ```
 
 
@@ -125,7 +127,7 @@ Indiviudal treatment models
 Put together model for each of the outcomes.  Then run loop on the outcomes
 ```{r}
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
-outcomes_t1 = tlc_complete_t1[,7:11]
+outcomes_t1 = tlc_complete_t1[,9:13]
 
 results_t1 = list()
 for(i in 1:length(outcomes_t1)){
@@ -134,7 +136,7 @@ for(i in 1:length(outcomes_t1)){
 results_t1
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
-outcomes_t2 = tlc_complete_t2[,7:11]
+outcomes_t2 = tlc_complete_t2[,9:13]
 
 results_t2 = list()
 for(i in 1:length(outcomes_t2)){
@@ -143,7 +145,7 @@ for(i in 1:length(outcomes_t2)){
 results_t2
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
-outcomes_t3 = tlc_complete_t3[,7:11]
+outcomes_t3 = tlc_complete_t3[,9:13]
 
 results_t3 = list()
 for(i in 1:length(outcomes_t3)){
@@ -157,7 +159,7 @@ Now comparison models for each
 Need to figure out how to grab the effects and compare them
 Contrasts are asking whether t3-t2
 ```{r}
-outcomes_all = tlc_complete[,7:11]
+outcomes_all = tlc_complete[,9:13]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -172,7 +174,7 @@ results_all
 ```
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
 ```{r}
-outcomes_all = tlc_complete[,7:11]
+outcomes_all = tlc_complete[,9:13]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -193,7 +195,7 @@ tlc_complete$SexualOrientation_binary = ifelse(tlc_complete$SexualOrientation ==
 describe.factor(tlc_complete$Gender)
 
 
-outcomes_all = tlc_complete[,7:11]
+outcomes_all = tlc_complete[,9:13]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -205,3 +207,13 @@ for(i in 1:length(outcomes_all)){
 contrasts_all
 results_all
 ```
+
+
+
+
+
+
+
+
+
+
