@@ -326,8 +326,130 @@ for(i in 1:length(measure_invar_names)){
  anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
 anova_results
+```
+Get measure 
 
-## Need over time
+Get Measurement invar over time
+Get later too much brain power
+```{r}
+
+```
+RAS psycho
+```{r}
+head(tlc_data_analysis)
+RAS_b_average = tlc_data_analysis[,9:28]
+RAS_b_average$ID = 1:dim(RAS_b_average)[1]
+## Create a variable without any missing data
+library(caret)
+inTrain = createDataPartition(y = RAS_b_average$ID, p = .50, list = FALSE)
+efa_b_RAS = RAS_b_average[inTrain,]
+cfa_b_RAS = RAS_b_average[-inTrain,]
+efa_b_RAS$ID = NULL
+cfa_b_RAS$ID = NULL
+RAS_b_average$ID = NULL
+
+library(psych)
+efa_b_1 = fa(r = efa_b_RAS, nfactors = 1, fm = "gls")
+efa_b_2 = fa(r = efa_b_RAS, nfactors = 2, fm = "gls")
+efa_b_3 = fa(r = efa_b_RAS, nfactors = 3, fm = "gls")
+
+anova(efa_b_1, efa_b_2)
+anova(efa_b_2, efa_b_3)
+fa.diagram(efa_b_2)
+
+####
+vss(efa_b_RAS)
+###
+library(paran)
+efa_b_RAS_complete = na.omit(efa_b_RAS)
+paran(efa_b_RAS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
+
+
+### Try CFA
+
+model_1  ='RAS_B =~ RAS1_B + RAS2_B + RAS3_B + RAS4_B + RAS5_B + RAS6_B + RAS7_B + RAS8_B + RAS9_B + RAS10_B + RAS11_B + RAS12_B + RAS13_B + RAS14_B + RAS15_B + RAS16_B + RAS17_B + RAS18_B + RAS19_B + RAS20_B'
+
+library(lavaan)
+fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_RAS)
+summary(fit_1, fit.measures = TRUE, standardized = TRUE)
+```
+SSMI Pyscho Not bad
+```{r}
+head(tlc_data_analysis)
+SSMI_b_average = tlc_data_analysis[,41:45]
+SSMI_b_average$ID = 1:dim(SSMI_b_average)[1]
+## Create a variable without any missing data
+library(caret)
+inTrain = createDataPartition(y = SSMI_b_average$ID, p = .50, list = FALSE)
+efa_b_SSMI = SSMI_b_average[inTrain,]
+cfa_b_SSMI = SSMI_b_average[-inTrain,]
+efa_b_SSMI$ID = NULL
+cfa_b_SSMI$ID = NULL
+SSMI_b_average$ID = NULL
+
+library(psych)
+efa_b_1 = fa(r = efa_b_SSMI, nfactors = 1, fm = "gls")
+efa_b_2 = fa(r = efa_b_SSMI, nfactors = 2, fm = "gls")
+efa_b_3 = fa(r = efa_b_SSMI, nfactors = 3, fm = "gls")
+
+anova(efa_b_1, efa_b_2)
+anova(efa_b_2, efa_b_3)
+fa.diagram(efa_b_2)
+
+####
+vss(efa_b_SSMI)
+###
+library(paran)
+efa_b_SSMI_complete = na.omit(efa_b_SSMI)
+paran(efa_b_SSMI_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
+
+
+### Try CFA
+
+model_1  ='SSMI_B =~ SSMI1_B + SSMI2_B + SSMI3_B + SSMI4_B + SSMI5_B'
+
+library(lavaan)
+fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_SSMI)
+summary(fit_1, fit.measures = TRUE, standardized = TRUE)
+```
+SIS Excellent
+```{r}
+head(tlc_data_analysis)
+SIS_b_average = tlc_data_analysis[,46:50]
+SIS_b_average$ID = 1:dim(SIS_b_average)[1]
+## Create a variable without any missing data
+library(caret)
+inTrain = createDataPartition(y = SIS_b_average$ID, p = .50, list = FALSE)
+efa_b_SIS = SIS_b_average[inTrain,]
+cfa_b_SIS = SIS_b_average[-inTrain,]
+efa_b_SIS$ID = NULL
+cfa_b_SIS$ID = NULL
+SIS_b_average$ID = NULL
+
+library(psych)
+efa_b_1 = fa(r = efa_b_SIS, nfactors = 1, fm = "gls")
+efa_b_2 = fa(r = efa_b_SIS, nfactors = 2, fm = "gls")
+efa_b_3 = fa(r = efa_b_SIS, nfactors = 3, fm = "gls")
+
+anova(efa_b_1, efa_b_2)
+anova(efa_b_2, efa_b_3)
+fa.diagram(efa_b_2)
+
+####
+vss(efa_b_SIS)
+###
+library(paran)
+efa_b_SIS_complete = na.omit(efa_b_SIS)
+paran(efa_b_SIS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
+
+
+### Try CFA
+
+model_1  ='SIS_B =~ SIS1_B + SIS2_B + SIS3_B + SIS4_B + SIS5_B'
+
+library(lavaan)
+fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_SIS)
+summary(fit_1, fit.measures = TRUE, standardized = TRUE)
 ```
 
 
@@ -353,13 +475,3 @@ inq12_b_d_fac1 = rbind(inq12_b_fac1_retest, inq12_b_fac2_retest)
 inq12_b_d_fac1_complete = na.omit(inq12_b_d_fac1)
 testRetest(inq12_b_d_fac1)
 ```
-
-
-
-
-
-
-
-
-
-
