@@ -36,7 +36,7 @@ describe.factor(tlc_data$CSSRS4)
 describe.factor(tlc_data$AttemptSuicide)
 head(tlc_data)
 tlc_data_analysis = tlc_data[,c(1,2,5:9, 11, 13:56, 69:112,118,124)]
-tlc_data_analysis = data.frame(tlc_data_analysis, HoursPsychotherapy = tlc_data$HoursPsychotherapy, CurrentlyEngaged  =  tlc_data$CurrentlyEngaged, ReferralsEngaged = tlc_data$ReferralsEngaged, Attend75Referrals = tlc_data$Attend75Referrals, ReferralsProvided = tlc_data$ReferralsProvided)
+tlc_data_analysis = data.frame(tlc_data_analysis, HoursPsychotherapy = tlc_data$HoursPsychotherapy, CurrentlyEngaged  =  tlc_data$CurrentlyEngaged, ReferralsEngaged = tlc_data$ReferralsEngaged, Attend75Referrals = tlc_data$Attend75Referrals, ReferralsProvided = tlc_data$ReferralsProvided, CrisisPlan80Time = tlc_data$CrisisPlan80Time)
 head(tlc_data_analysis)
 ```
 Check all variables are within the ranges
@@ -84,7 +84,7 @@ sum(is.na(PHQ9_diff))
 head(tlc_data_analysis)
 #### Create new data with average scores
 #apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:103)], RAS_diff, INQ_diff, SSMI_diff, SIS_diff, PHQ9_diff)
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_diff, INQ_diff, SSMI_diff, SIS_diff, PHQ9_diff)
 head(tlc_data_analysis_average)
 ```
 Evaluate missing data
@@ -103,6 +103,12 @@ tlc_complete = na.omit(tlc_data_analysis_average)
 dim(tlc_complete)[1]
 ```
 Descriptive statistics
+
+Who provided (program staff) what services (modality, type, intensity, duration), to whom (individual characteristics), in what context (system, community)?
+
+ (1) a minimum of 5,660  youth will receive all components of the enhanced post-crisis follow-up intervention by the discharge survey 
+ 
+ (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
 head(tlc_complete)
 describe.factor(tlc_complete$TXPackageAssigned)
@@ -113,6 +119,7 @@ describe.factor(tlc_complete$SexualOrientation)
 describe.factor(tlc_complete$HoursPsychotherapy)
 describe.factor(tlc_complete$CurrentlyEngaged)
 describe.factor(tlc_complete$ReferralsProvided)
+describe.factor(tlc_complete$CrisisPlan80Time)
 
 head(tlc_complete)
 ```
@@ -123,13 +130,18 @@ tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,
 describe.factor(tlc_complete$ReferralsEngaged_binary)
 describe.factor(tlc_complete$Attend75Referrals)
 ```
-
+ •	What are the effects of the interventions on participants?
 
 Indiviudal treatment models
 Put together model for each of the outcomes.  Then run loop on the outcomes
+
+(4) self-stigma of mental illness, thwarted belongingness, and perceived burdensomeness will each decrease 30% among youth enrolled in enhanced post-crisis follow-up by the discharge assessment; and 
+(5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention, 
+(6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention. 
+
 ```{r}
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
-outcomes_t1 = tlc_complete_t1[,12:16]
+outcomes_t1 = tlc_complete_t1[,13:17]
 
 results_t1 = list()
 for(i in 1:length(outcomes_t1)){
@@ -138,20 +150,20 @@ for(i in 1:length(outcomes_t1)){
 results_t1
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
-outcomes_t2 = tlc_complete_t2[,12:16]
+outcomes_t2 = tlc_complete_t2[,13:17]
 
 results_t2 = list()
 for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2))
+  results_t2[[i]] = summary(stan_glm(log(outcomes_t2)[[i]] ~ 1, data = outcomes_t2))
 }
 results_t2
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
-outcomes_t3 = tlc_complete_t3[,12:16]
+outcomes_t3 = tlc_complete_t3[,13:17]
 
 results_t3 = list()
 for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3))
+  results_t3[[i]] = summary(stan_glm(log(outcomes_t3)[[i]] ~ 1, data = outcomes_t3))
 }
 results_t3
 
@@ -160,8 +172,12 @@ results_t3
 Now comparison models for each 
 Need to figure out how to grab the effects and compare them
 Contrasts are asking whether t3-t2
+
+•	Does the effect vary by mode of intervention (i.e., phone, phone and caring texts, phone and face-to-face contacts)
+
+(8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
-outcomes_all = tlc_complete[,12:16]
+outcomes_all = tlc_complete[,13:17]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -175,8 +191,10 @@ results_all
 
 ```
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
+
+•	What program/contextual factors are associated with which outcomes?
 ```{r}
-outcomes_all = tlc_complete[,12:16]
+outcomes_all = tlc_complete[,13:17]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -189,6 +207,8 @@ contrasts_all
 results_all
 ```
 Try testing whether the inclusion of demos makes a difference
+
+•	What individual factors were associated with outcomes, including race/ethnicity/sexual identity (sexual orientation/gender identity)?
 ```{r}
 describe.factor(tlc_complete$RaceEthnicity)
 tlc_complete$RaceEthnicity_binary = ifelse(tlc_complete$RaceEthnicity == 3, 1, 0)
@@ -197,7 +217,7 @@ tlc_complete$SexualOrientation_binary = ifelse(tlc_complete$SexualOrientation ==
 describe.factor(tlc_complete$Gender)
 
 
-outcomes_all = tlc_complete[,12:16]
+outcomes_all = tlc_complete[,13:17]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -255,12 +275,37 @@ model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
 fit_2 = cfa(model_2, estimator = "MLR", missing = "ML", data = cfa_b_inq)
 summary(fit_2, fit.measures = TRUE, standardized = TRUE)
 
+### Measurement invariance at base for everything besides time 
+library(semTools)
 
-### Measurement invariance do later
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
+          INQ12_2 =~ INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
+head(tlc_data_analysis)
+
+tlc_data_analysis$Gender_bin = ifelse(tlc_data_analysis$Gender == 3, NA, ifelse(tlc_data_analysis$Gender ==0, NA, tlc_data_analysis$Gender))
+dim(tlc_data_analysis)
+describe.factor(tlc_data_analysis$HispanicLatino)
+measure_invar = tlc_data_analysis[,c(3,4, 6,7, 105)]
+head(measure_invar)
+measure_invar_results = list()
+
+tlc_data_analysis_complete = na.omit(tlc_data_analysis) 
+describe.factor(tlc_data_analysis$Gender)
+
+
+config <- cfa(model_2, data=tlc_data_analysis, group= "Gender_bin", estimator = "MLR", missing = "ML")
+
+for(i in 1:length(outcomes_measure_invar)){
+ measure_invar_results[[i]]= cfa(model_2, data = tlc_data_analysis, group = measure_invar[[i]])
+}
+
+fit_invar = cfa(model_2, estimator = "MLR", missing = "ML", data = )
 
 
 #INQ_d_average = tlc_data_analysis[,73:84]
 ```
+
+
 Get reliability for two factors, test-retest 
 ```{r}
 inq12_b_fac1 = tlc_data_analysis[,29:34]
