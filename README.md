@@ -19,7 +19,7 @@ Same for comparisons
 library(prettyR)
 library(rstanarm)
 setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
-tlc_data = read.csv("TLCConnect9_23_19.csv", header = TRUE, na.strings = c(-6,-7,-8,-9))
+tlc_data = read.csv("TLCConnect_10_1_2019.csv", header = TRUE, na.strings = c(-6,-7,-8,-9))
 head(tlc_data)
 ## Change youth id 
 colnames(tlc_data)[1] = "YouthID"
@@ -51,8 +51,11 @@ head(tlc_data_analysis)
 RAS_b_average = tlc_data_analysis[,9:28]
 RAS_b_average = apply(RAS_b_average, 1, mean, na.rm = TRUE)
 
-INQ_b_average = tlc_data_analysis[,29:40]
-INQ_b_average = apply(INQ_b_average, 1, mean, na.rm = TRUE)
+INQ_b_1_average = tlc_data_analysis[,29:34]
+INQ_b_1_average = apply(INQ_b_1_average, 1, mean, na.rm = TRUE)
+
+INQ_b_2_average = tlc_data_analysis[,35:40]
+INQ_b_2_average = apply(INQ_b_2_average, 1, mean, na.rm = TRUE)
 
 SSMI_b_average = tlc_data_analysis[,41:45]
 SSMI_b_average =  apply(SSMI_b_average, 1, mean, na.rm = TRUE)
@@ -63,8 +66,12 @@ SIS_b_average = apply(SIS_b_average, 1, mean, na.rm =TRUE)
 RAS_d_average = tlc_data_analysis[53:72]
 RAS_d_average = apply(RAS_d_average, 1, mean, na.rm = TRUE)
 
-INQ_d_average = tlc_data_analysis[,73:84]
-INQ_d_average = apply(INQ_d_average, 1, mean, na.rm = TRUE)
+INQ_d_1_average = tlc_data_analysis[,73:78]
+INQ_d_1_average = apply(INQ_d_1_average, 1, mean, na.rm = TRUE)
+
+INQ_d_2_average = tlc_data_analysis[,79:84]
+INQ_d_2_average = apply(INQ_d_2_average, 1, mean, na.rm = TRUE)
+
 
 SSMI_d_average = tlc_data_analysis[,85:89]
 SSMI_d_average = apply(SSMI_d_average, 1, mean, na.rm = TRUE)
@@ -74,7 +81,8 @@ SIS_d_average = apply(SIS_d_average, 1, mean, na.rm = TRUE)
 
 ### Create difference scores
 RAS_diff = RAS_d_average - RAS_b_average
-INQ_diff = INQ_d_average - INQ_b_average
+INQ_1_diff = INQ_d_1_average - INQ_b_1_average
+INQ_2_diff = INQ_d_2_average - INQ_b_2_average
 SSMI_diff = SSMI_d_average-SSMI_b_average
 sum(is.na(SSMI_diff))
 SIS_diff = SIS_d_average-SIS_b_average
@@ -84,7 +92,7 @@ sum(is.na(PHQ9_diff))
 head(tlc_data_analysis)
 #### Create new data with average scores
 #apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_diff, INQ_diff, SSMI_diff, SIS_diff, PHQ9_diff)
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_diff, PHQ9_diff)
 head(tlc_data_analysis_average)
 ```
 Evaluate missing data
@@ -123,6 +131,14 @@ describe.factor(tlc_complete$CrisisPlan80Time)
 
 head(tlc_complete)
 ```
+Look at means and sds over time 
+```{r}
+head(tlc_complete)
+describe(tlc_complete[,13:18])
+apply(tlc_complete[,13:18], 2, range)
+```
+
+
 Figure out this question
 referrals will be retained at least 50% of the time among youth enrolled in the post-crisis follow-up intervention and follow-through with appointments will occur at least 75% of the time
 ```{r}
@@ -281,28 +297,37 @@ library(semTools)
 model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
           INQ12_2 =~ INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
 head(tlc_data_analysis)
-
-tlc_data_analysis$Gender_bin = ifelse(tlc_data_analysis$Gender == 3, NA, ifelse(tlc_data_analysis$Gender ==0, NA, tlc_data_analysis$Gender))
-dim(tlc_data_analysis)
-describe.factor(tlc_data_analysis$HispanicLatino)
-measure_invar = tlc_data_analysis[,c(3,4, 6,7, 105)]
+measure_invar = tlc_data_analysis
 head(measure_invar)
-measure_invar_results = list()
+measure_invar$HispanicLatino = ifelse(measure_invar$HispanicLatino == 2, NA, measure_invar$HispanicLatino)
+describe.factor(measure_invar$HispanicLatino)
+describe.factor(measure_invar$RaceEthnicity)
+### Non-white versus white
+measure_invar$RaceEthnicity = ifelse(measure_invar$RaceEthnicity != 3, 0, 1)
+describe.factor(measure_invar$Version)
+###sexual minority versus sexual majority
+describe.factor(measure_invar$SexualOrientation)
+measure_invar$SexualOrientation = ifelse(measure_invar$SexualOrientation == 5, 0,1)
+measure_invar$Age = as.numeric(measure_invar$Age)
+measure_invar$Age = ifelse(measure_invar$Age > mean(measure_invar$Age, na.rm = TRUE), 1, 0)
+measure_invar$Gender = ifelse(measure_invar$Gender == 1, 1, 0)
 
-tlc_data_analysis_complete = na.omit(tlc_data_analysis) 
-describe.factor(tlc_data_analysis$Gender)
-
-
-config <- cfa(model_2, data=tlc_data_analysis, group= "Gender_bin", estimator = "MLR", missing = "ML")
-
-for(i in 1:length(outcomes_measure_invar)){
- measure_invar_results[[i]]= cfa(model_2, data = tlc_data_analysis, group = measure_invar[[i]])
+measure_invar_config = list()
+measure_invar_weak = list()
+measure_invar_strong = list()
+measure_invar_strict = list()
+anova_results = list()
+measure_invar_names = names(measure_invar)[3:8]
+for(i in 1:length(measure_invar_names)){
+ measure_invar_config[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
+ measure_invar_weak[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
+ measure_invar_strong[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
+ measure_invar_strict[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
+ anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
+anova_results
 
-fit_invar = cfa(model_2, estimator = "MLR", missing = "ML", data = )
-
-
-#INQ_d_average = tlc_data_analysis[,73:84]
+## Need over time
 ```
 
 
