@@ -48,8 +48,22 @@ Create average scores.  Use average scores so you can keep if one out of total i
 ```{r}
 head(tlc_data_analysis)
 
+#f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
 RAS_b_average = tlc_data_analysis[,9:28]
-RAS_b_average = apply(RAS_b_average, 1, mean, na.rm = TRUE)
+
+RAS_b_1_average = RAS_b_average[,c(6:13,20)]
+RAS_b_1_average = apply(RAS_b_1_average, 1, mean, na.rm = TRUE)
+
+#q=17,r=18,s=19
+RAS_b_2_average = RAS_b_average[,17:19]
+RAS_b_2_average = apply(RAS_b_2_average, 1, mean, na.rm = TRUE)
+
+#a,b,c,d,e
+RAS_b_3_average = RAS_b_average[,1:5]
+RAS_b_3_average = apply(RAS_b_3_average, 1, mean, na.rm = TRUE)
+#n=14,o=15,p=16
+RAS_b_5_average = RAS_b_average[,14:16]
+RAS_b_5_average = apply(RAS_b_5_average, 1, mean, na.rm = TRUE)
 
 INQ_b_1_average = tlc_data_analysis[,29:34]
 INQ_b_1_average = apply(INQ_b_1_average, 1, mean, na.rm = TRUE)
@@ -60,11 +74,37 @@ INQ_b_2_average = apply(INQ_b_2_average, 1, mean, na.rm = TRUE)
 SSMI_b_average = tlc_data_analysis[,41:45]
 SSMI_b_average =  apply(SSMI_b_average, 1, mean, na.rm = TRUE)
 
-SIS_b_average = tlc_data_analysis[,46:52]
-SIS_b_average = apply(SIS_b_average, 1, mean, na.rm =TRUE)
 
+
+SIS_b_average = tlc_data_analysis[,46:52]
+
+#a,b,c,d
+SIS_b_1_average = SIS_b_average[,1:4]
+SIS_b_1_average = apply(SIS_b_1_average, 1, mean, na.rm =TRUE)
+
+#e,f,g
+SIS_b_2_average = SIS_b_average[,5:7]
+SIS_b_2_average = apply(SIS_b_2_average, 1, mean, na.rm =TRUE)
+
+
+
+#### Discharge
+#f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
 RAS_d_average = tlc_data_analysis[53:72]
-RAS_d_average = apply(RAS_d_average, 1, mean, na.rm = TRUE)
+
+RAS_d_1_average = RAS_d_average[,c(6:13,20)]
+RAS_d_1_average = apply(RAS_d_1_average, 1, mean, na.rm = TRUE)
+
+#q=17,r=18,s=19
+RAS_d_2_average = RAS_d_average[,17:19]
+RAS_d_2_average = apply(RAS_d_2_average, 1, mean, na.rm = TRUE)
+
+#a,b,c,d,e
+RAS_d_3_average = RAS_d_average[,1:5]
+RAS_d_3_average = apply(RAS_d_3_average, 1, mean, na.rm = TRUE)
+#n=14,o=15,p=16
+RAS_d_5_average = RAS_d_average[,14:16]
+RAS_d_5_average = apply(RAS_d_5_average, 1, mean, na.rm = TRUE)
 
 INQ_d_1_average = tlc_data_analysis[,73:78]
 INQ_d_1_average = apply(INQ_d_1_average, 1, mean, na.rm = TRUE)
@@ -72,27 +112,42 @@ INQ_d_1_average = apply(INQ_d_1_average, 1, mean, na.rm = TRUE)
 INQ_d_2_average = tlc_data_analysis[,79:84]
 INQ_d_2_average = apply(INQ_d_2_average, 1, mean, na.rm = TRUE)
 
-
 SSMI_d_average = tlc_data_analysis[,85:89]
-SSMI_d_average = apply(SSMI_d_average, 1, mean, na.rm = TRUE)
+SSMI_d_average =  apply(SSMI_d_average, 1, mean, na.rm = TRUE)
+
 
 SIS_d_average = tlc_data_analysis[,90:96]
-SIS_d_average = apply(SIS_d_average, 1, mean, na.rm = TRUE)
+
+#a,b,c,d
+SIS_d_1_average = SIS_d_average[,1:4]
+SIS_d_1_average = apply(SIS_d_1_average, 1, mean, na.rm =TRUE)
+
+#e,f,g
+SIS_d_2_average = SIS_d_average[,5:7]
+SIS_d_2_average = apply(SIS_d_2_average, 1, mean, na.rm =TRUE)
+
 
 ### Create difference scores
-RAS_diff = RAS_d_average - RAS_b_average
+RAS_1_diff = RAS_d_1_average - RAS_b_1_average
+RAS_2_diff = RAS_d_2_average - RAS_b_2_average
+RAS_3_diff = RAS_d_3_average - RAS_b_3_average
+RAS_5_diff = RAS_d_5_average - RAS_b_5_average
+
+
+
 INQ_1_diff = INQ_d_1_average - INQ_b_1_average
 INQ_2_diff = INQ_d_2_average - INQ_b_2_average
 SSMI_diff = SSMI_d_average-SSMI_b_average
-sum(is.na(SSMI_diff))
-SIS_diff = SIS_d_average-SIS_b_average
-sum(is.na(SIS_diff))
+
+SIS_1_diff = SIS_d_1_average-SIS_b_1_average
+SIS_2_diff = SIS_d_2_average-SIS_b_2_average
+
 PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
 sum(is.na(PHQ9_diff))
 head(tlc_data_analysis)
 #### Create new data with average scores
 #apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_diff, PHQ9_diff)
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff)
 head(tlc_data_analysis_average)
 ```
 Evaluate missing data
@@ -119,23 +174,26 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
 head(tlc_complete)
+dim(tlc_complete)
 describe.factor(tlc_complete$TXPackageAssigned)
 describe.factor(tlc_complete$Gender)
 describe.factor(tlc_complete$HispanicLatino)
 describe.factor(tlc_complete$RaceEthnicity)
 describe.factor(tlc_complete$SexualOrientation)
 describe.factor(tlc_complete$HoursPsychotherapy)
+mean(tlc_complete$HoursPsychotherapy)
+sd(tlc_complete$HoursPsychotherapy)
 describe.factor(tlc_complete$CurrentlyEngaged)
-describe.factor(tlc_complete$ReferralsProvided)
+mean(tlc_complete$ReferralsProvided)
+sd(tlc_complete$ReferralsProvided)
 describe.factor(tlc_complete$CrisisPlan80Time)
-
 head(tlc_complete)
 ```
 Look at means and sds over time 
 ```{r}
 head(tlc_complete)
-describe(tlc_complete[,13:18])
-apply(tlc_complete[,13:18], 2, range)
+describe(tlc_complete[,13:22])
+apply(tlc_complete[,13:22], 2, range)
 ```
 
 
@@ -157,7 +215,8 @@ Put together model for each of the outcomes.  Then run loop on the outcomes
 
 ```{r}
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
-outcomes_t1 = tlc_complete_t1[,13:17]
+outcomes_t1 = tlc_complete_t1[,13:22]
+describe(outcomes_t1)
 
 results_t1 = list()
 for(i in 1:length(outcomes_t1)){
@@ -166,20 +225,21 @@ for(i in 1:length(outcomes_t1)){
 results_t1
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
-outcomes_t2 = tlc_complete_t2[,13:17]
+outcomes_t2 = tlc_complete_t2[,13:22]
+describe(outcomes_t2)
 
 results_t2 = list()
 for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(log(outcomes_t2)[[i]] ~ 1, data = outcomes_t2))
+  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2))
 }
 results_t2
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
-outcomes_t3 = tlc_complete_t3[,13:17]
+outcomes_t3 = tlc_complete_t3[,13:22]
 
 results_t3 = list()
 for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(log(outcomes_t3)[[i]] ~ 1, data = outcomes_t3))
+  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3))
 }
 results_t3
 
@@ -193,7 +253,8 @@ Contrasts are asking whether t3-t2
 
 (8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
-outcomes_all = tlc_complete[,13:17]
+outcomes_all = tlc_complete[,13:22]
+
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -202,15 +263,17 @@ for(i in 1:length(outcomes_all)){
   contrasts_all[[i]] = data.frame(contrasts_all[[i]][,3]-contrasts_all[[i]][,2])
   contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
 }
-contrasts_all
 results_all
+contrasts_all
 
 ```
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
 
 •	What program/contextual factors are associated with which outcomes?
 ```{r}
-outcomes_all = tlc_complete[,13:17]
+outcomes_all = tlc_complete[,13:22]
+outcomes_all = data.frame(apply(outcomes_all, 2, scale))
+
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -233,7 +296,7 @@ tlc_complete$SexualOrientation_binary = ifelse(tlc_complete$SexualOrientation ==
 describe.factor(tlc_complete$Gender)
 
 
-outcomes_all = tlc_complete[,13:17]
+outcomes_all = tlc_complete[,13:22]
 results_all = list()
 contrasts_all = list()
 for(i in 1:length(outcomes_all)){
@@ -248,6 +311,8 @@ results_all
 Pyschometrics
 Test confirmatory factor because we have support that should be one factor
 Then do invar and see if related to any factors that you included
+
+See Hirschfeld(2014) for details
 ```{r}
 head(tlc_data_analysis)
 INQ_b_average = tlc_data_analysis[,29:40]
@@ -475,3 +540,13 @@ inq12_b_d_fac1 = rbind(inq12_b_fac1_retest, inq12_b_fac2_retest)
 inq12_b_d_fac1_complete = na.omit(inq12_b_d_fac1)
 testRetest(inq12_b_d_fac1)
 ```
+
+
+
+
+
+
+
+
+
+
