@@ -202,11 +202,12 @@ describe(tlc_complete[,23:42])
 p_change = data.frame(describe(tlc_complete[,23:42]))
 write.csv(p_change, "p_change.csv", row.names = TRUE)
 ```
+(1)	a minimum of 5,660  youth will receive all components of the enhanced post-crisis follow-up intervention by the discharge survey 
 
-
-Figure out this question
 referrals will be retained at least 50% of the time among youth enrolled in the post-crisis follow-up intervention and follow-through with appointments will occur at least 75% of the time
 ```{r}
+dim(tlc_complete)
+
 tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,1,0)
 describe.factor(tlc_complete$ReferralsEngaged_binary)
 describe.factor(tlc_complete$Attend75Referrals)
@@ -276,43 +277,120 @@ Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes 
 
 •	What program/contextual factors are associated with which outcomes?
 ```{r}
-outcomes_all = tlc_complete[,13:22]
-outcomes_all = data.frame(apply(outcomes_all, 2, scale))
 
-results_all = list()
-contrasts_all = list()
-for(i in 1:length(outcomes_all)){
-  results_all[[i]] = summary(stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned) +HoursPsychotherapy + CurrentlyEngaged, data = tlc_complete))
-  contrasts_all[[i]] = as.data.frame(results_all[[i]])
-  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,3]-contrasts_all[[i]][,2])
-  contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
+tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
+cor(tlc_complete_t1[,7:12])
+outcomes_t1 = tlc_complete_t1[,13:22]
+
+results_t1 = list()
+for(i in 1:length(outcomes_t1)){
+  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ HoursPsychotherapy  + Attend75Referrals+ CrisisPlan80Time, data = tlc_complete_t1))
 }
-contrasts_all
-results_all
+
+results_t1
+
+tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
+outcomes_t2 = tlc_complete_t2[,13:22]
+describe(outcomes_t2)
+
+results_t2 = list()
+for(i in 1:length(outcomes_t2)){
+  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ HoursPsychotherapy  + Attend75Referrals+  CrisisPlan80Time, data = tlc_complete_t2))
+}
+results_t2
+
+tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
+outcomes_t3 = tlc_complete_t3[,13:22]
+
+results_t3 = list()
+for(i in 1:length(outcomes_t3)){
+  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ HoursPsychotherapy  + Attend75Referrals+    CrisisPlan80Time, data = tlc_complete_t3))
+}
+results_t3
+
 ```
 Try testing whether the inclusion of demos makes a difference
 
 •	What individual factors were associated with outcomes, including race/ethnicity/sexual identity (sexual orientation/gender identity)?
 ```{r}
-describe.factor(tlc_complete$RaceEthnicity)
-tlc_complete$RaceEthnicity_binary = ifelse(tlc_complete$RaceEthnicity == 3, 1, 0)
-describe.factor(tlc_complete$SexualOrientation)
-tlc_complete$SexualOrientation_binary = ifelse(tlc_complete$SexualOrientation == 5, 1, 0)
-describe.factor(tlc_complete$Gender)
+tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
+cor(tlc_complete_t1[,7:12])
+outcomes_t1 = tlc_complete_t1[,13:22]
+#Age, Gender (female), RaceEthnicity (non-white), SexualOrientation (sexual minor)
+tlc_complete_t1$Gender = ifelse(tlc_complete_t1$Gender == 1, 0,1)
+tlc_complete_t1$RaceEthnicity = ifelse(tlc_complete_t1$RaceEthnicity == 3, 0,1)
+tlc_complete_t1$SexualOrientation = ifelse(tlc_complete_t1$SexualOrientation == 5,0,1)
 
+head(tlc_complete_t1)
 
-outcomes_all = tlc_complete[,13:22]
-results_all = list()
-contrasts_all = list()
-for(i in 1:length(outcomes_all)){
-  results_all[[i]] = summary(stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned) + Age +RaceEthnicity_binary + Gender + SexualOrientation_binary, data = tlc_complete))
-  contrasts_all[[i]] = as.data.frame(results_all[[i]])
-  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,3]-contrasts_all[[i]][,2])
-  contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
+results_t1 = list()
+for(i in 1:length(outcomes_t1)){
+  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t1))
 }
-contrasts_all
-results_all
+
+results_t1
+
+tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
+outcomes_t2 = tlc_complete_t2[,13:22]
+describe(outcomes_t2)
+tlc_complete_t2$Gender = ifelse(tlc_complete_t2$Gender == 1, 0,1)
+tlc_complete_t2$RaceEthnicity = ifelse(tlc_complete_t2$RaceEthnicity == 3, 0,1)
+tlc_complete_t2$SexualOrientation = ifelse(tlc_complete_t2$SexualOrientation == 5,0,1)
+
+results_t2 = list()
+for(i in 1:length(outcomes_t2)){
+  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t2))
+}
+results_t2
+
+tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
+outcomes_t3 = tlc_complete_t3[,13:22]
+tlc_complete_t3$Gender = ifelse(tlc_complete_t3$Gender == 1, 0,1)
+tlc_complete_t3$RaceEthnicity = ifelse(tlc_complete_t3$RaceEthnicity == 3, 0,1)
+tlc_complete_t3$SexualOrientation = ifelse(tlc_complete_t3$SexualOrientation == 5,0,1)
+
+results_t3 = list()
+for(i in 1:length(outcomes_t3)){
+  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t3))
+}
+results_t3
 ```
+•	Does effectiveness of the program intervention vary according to clinical risk presentation (e.g., suicide risk score, history of past attempts)? 
+
+```{r}
+tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
+outcomes_t1 = tlc_complete_t1[,13:22]
+
+head(tlc_complete_t1)
+
+results_t1 = list()
+for(i in 1:length(outcomes_t1)){
+  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ PHQ9_b, data = tlc_complete_t1))
+}
+
+results_t1
+
+tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
+outcomes_t2 = tlc_complete_t2[,13:22]
+
+results_t2 = list()
+for(i in 1:length(outcomes_t2)){
+  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~PHQ9_b, data = tlc_complete_t2))
+}
+results_t2
+
+tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
+outcomes_t3 = tlc_complete_t3[,13:22]
+
+results_t3 = list()
+for(i in 1:length(outcomes_t3)){
+  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~PHQ9_b, data = tlc_complete_t3))
+}
+results_t3
+
+```
+
+
 Pyschometrics
 Test confirmatory factor because we have support that should be one factor
 Then do invar and see if related to any factors that you included
