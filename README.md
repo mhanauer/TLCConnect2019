@@ -500,10 +500,16 @@ library(psych)
 efa_b_1 = fa(r = efa_b_RAS, nfactors = 1, fm = "gls")
 efa_b_2 = fa(r = efa_b_RAS, nfactors = 2, fm = "gls")
 efa_b_3 = fa(r = efa_b_RAS, nfactors = 3, fm = "gls")
+efa_b_4 = fa(r = efa_b_RAS, nfactors = 4, fm = "gls")
+efa_b_5 = fa(r = efa_b_RAS, nfactors = 5, fm = "gls")
+
 
 anova(efa_b_1, efa_b_2)
 anova(efa_b_2, efa_b_3)
-fa.diagram(efa_b_2)
+anova(efa_b_3, efa_b_4)
+anova(efa_b_4, efa_b_5)
+
+fa.diagram(efa_b_5)
 
 ####
 vss(efa_b_RAS)
@@ -514,8 +520,16 @@ paran(efa_b_RAS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = T
 
 
 ### Try CFA
+#f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
+#q=17,r=18,s=19
+#a,b,c,d,e
+#n=14,o=15,p=16
 
-model_1  ='RAS_B =~ RAS1_B + RAS2_B + RAS3_B + RAS4_B + RAS5_B + RAS6_B + RAS7_B + RAS8_B + RAS9_B + RAS10_B + RAS11_B + RAS12_B + RAS13_B + RAS14_B + RAS15_B + RAS16_B + RAS17_B + RAS18_B + RAS19_B + RAS20_B'
+
+model_1  ='RAS_1_B =~ RAS6_B + RAS7_B + RAS8_B + RAS9_B + RAS10_B + RAS11_B + RAS12_B + RAS13_B + RAS20_B
+RAS_2_B =~  RAS17_B + RAS18_B + RAS19_B
+RAS_3_B =~ RAS1_B + RAS2_B + RAS3_B + RAS4_B + RAS5_B
+RAS_4_B =~ RAS14_B + RAS15_B + RAS16_B '
 
 library(lavaan)
 fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_RAS)
@@ -563,7 +577,7 @@ summary(fit_1, fit.measures = TRUE, standardized = TRUE)
 SIS Excellent
 ```{r}
 head(tlc_data_analysis)
-SIS_b_average = tlc_data_analysis[,46:50]
+SIS_b_average = tlc_data_analysis[,46:52]
 SIS_b_average$ID = 1:dim(SIS_b_average)[1]
 ## Create a variable without any missing data
 library(caret)
@@ -593,7 +607,8 @@ paran(efa_b_SIS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = T
 
 ### Try CFA
 
-model_1  ='SIS_B =~ SIS1_B + SIS2_B + SIS3_B + SIS4_B + SIS5_B'
+model_1  ='SIS_1_B =~ SIS1_B + SIS2_B + SIS3_B + SIS4_B
+          SIS_2_B =~ + SIS5_B + SIS6_B + SIS7_B'
 
 library(lavaan)
 fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_SIS)
