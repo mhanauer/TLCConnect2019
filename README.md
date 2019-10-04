@@ -69,7 +69,10 @@ INQ_b_1_average = tlc_data_analysis[,29:34]
 INQ_b_1_average = apply(INQ_b_1_average, 1, mean, na.rm = TRUE)
 
 INQ_b_2_average = tlc_data_analysis[,35:40]
-INQ_b_2_average = apply(INQ_b_2_average, 1, mean, na.rm = TRUE)
+
+#https://www.marsja.se/reverse-scoring-using-r/
+INQ_b_2_average = 8-INQ_b_2_average
+INQ_b_2_average = apply(INQ_b_2_average,1, mean, na.rm = TRUE)
 
 SSMI_b_average = tlc_data_analysis[,41:45]
 SSMI_b_average =  apply(SSMI_b_average, 1, mean, na.rm = TRUE)
@@ -110,6 +113,7 @@ INQ_d_1_average = tlc_data_analysis[,73:78]
 INQ_d_1_average = apply(INQ_d_1_average, 1, mean, na.rm = TRUE)
 
 INQ_d_2_average = tlc_data_analysis[,79:84]
+INQ_d_2_average = 8-INQ_d_2_average
 INQ_d_2_average = apply(INQ_d_2_average, 1, mean, na.rm = TRUE)
 
 SSMI_d_average = tlc_data_analysis[,85:89]
@@ -147,8 +151,10 @@ sum(is.na(PHQ9_diff))
 head(tlc_data_analysis)
 #### Create new data with average scores
 #apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff)
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff, RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4)
 head(tlc_data_analysis_average)
+
+# 
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -158,7 +164,7 @@ Get rid of missing data
 library(MissMech)
 library(naniar)
 ## Ok to delete data
-TestMCARNormality(tlc_data_analysis_average)
+#TestMCARNormality(tlc_data_analysis_average)
 dim(tlc_data_analysis_average)
 miss_var_summary(tlc_data_analysis_average)
 tlc_complete = na.omit(tlc_data_analysis_average)
@@ -192,8 +198,9 @@ head(tlc_complete)
 Look at means and sds over time 
 ```{r}
 head(tlc_complete)
-describe(tlc_complete[,13:22])
-apply(tlc_complete[,13:22], 2, range)
+describe(tlc_complete[,23:42])
+p_change = data.frame(describe(tlc_complete[,23:42]))
+write.csv(p_change, "p_change.csv", row.names = TRUE)
 ```
 
 
@@ -254,16 +261,14 @@ Contrasts are asking whether t3-t2
 (8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
 outcomes_all = tlc_complete[,13:22]
-
-results_all = list()
-contrasts_all = list()
 for(i in 1:length(outcomes_all)){
-  results_all[[i]] = summary(stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned), data = tlc_complete))
+  results_all[[i]] = stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned), data = tlc_complete)
+  results_all_summary[[i]] = summary(results_all[[i]])
   contrasts_all[[i]] = as.data.frame(results_all[[i]])
-  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,3]-contrasts_all[[i]][,2])
+  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,2]-contrasts_all[[i]][,3])
   contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
 }
-results_all
+results_all_summary
 contrasts_all
 
 ```
