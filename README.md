@@ -240,20 +240,21 @@ Put together model for each of the outcomes.  Then run loop on the outcomes
 (6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention. 
 
 ```{r}
+library(forecast)
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
 outcomes_t1 = tlc_complete_t1[,13:22]
 describe(outcomes_t1)
 
 results_t1 = list()
 model_t1 = list()
-pp_check = list()
+resisuals_check_t1 = list()
 for(i in 1:length(outcomes_t1)){
-  model_t1[[i]] = stan_glm(outcomes_t1[[i]] ~ 1, data = outcomes_t1)
-  pp_check[[i]] = pp_check(model_t1[[i]])
+  model_t1[[i]] = lm(outcomes_t1[[i]] ~ 1, data = outcomes_t1)
   results_t1[[i]] = summary(model_t1[[i]])
+  resisuals_check_t1[[i]] = checkresiduals(model_t1[[i]])
 }
 results_t1
-pp_check
+resisuals_check_t1
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
 outcomes_t2 = tlc_complete_t2[,13:22]
@@ -261,28 +262,31 @@ describe(outcomes_t2)
 
 results_t2 = list()
 model_t2 = list()
-pp_check_t2 = list()
+resisuals_check_t2 = list()
 for(i in 1:length(outcomes_t2)){
-  model_t2[[i]] = stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2)
-  pp_check_t2[[i]] = pp_check(model_t2[[i]])
+  model_t2[[i]] = lm(outcomes_t2[[i]] ~ 1, data = outcomes_t2)
   results_t2[[i]] = summary(model_t2[[i]])
+  resisuals_check_t2[[i]] = checkresiduals(model_t2[[i]])
 }
 results_t2
-pp_check_t2
+resisuals_check_t2
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
 outcomes_t3 = tlc_complete_t3[,13:22]
+describe(outcomes_t3)
 
 results_t3 = list()
 model_t3 = list()
-pp_check_t3 = list()
+resisuals_check_t3 = list()
 for(i in 1:length(outcomes_t3)){
-  model_t3[[i]] = stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3)
-  pp_check_t3[[i]] = pp_check(model_t3[[i]])
+  model_t3[[i]] = lm(outcomes_t3[[i]] ~ 1, data = outcomes_t3)
   results_t3[[i]] = summary(model_t3[[i]])
+  resisuals_check_t3[[i]] = checkresiduals(model_t3[[i]])
 }
 results_t3
-pp_check_t3
+resisuals_check_t3
+
+
 
 ```
 
@@ -294,25 +298,57 @@ Contrasts are asking whether t3-t2
 
 (8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
-results_all = list()
-results_all_summary = list()
-r_2 = list()
-pp_check_all = list()
-contrasts_all = list()
-outcomes_all = tlc_complete[,13:22]
-for(i in 1:length(outcomes_all)){
-  results_all[[i]] = stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned), data = tlc_complete)
-  results_all_summary[[i]] = summary(results_all[[i]])
-  r_2[[i]] = median(bayes_R2(results_all[[i]]))
-  pp_check_all[[i]] = pp_check(results_all[[i]])
-  contrasts_all[[i]] = as.data.frame(results_all[[i]])
-  contrasts_all[[i]] = data.frame(contrasts_all[[i]][,2]-contrasts_all[[i]][,3])
-  contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
+#### Regular
+library(multcomp)
+### Try linear regression version and see if contrasts are similar
+outcomes_freq = tlc_complete[,13:22]
+outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
+outcomes_freq_results = list()
+outcomes_freq_sum = list()
+outcomes_freq_con = list()
+outcomes_freq_results_conf = list()  
+
+t = list()
+t_sum = list()
+t_conf = list()
+for(i in 1:length(outcomes_freq)){
+  outcomes_freq_results[[i]] = lm(outcomes_freq[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
+  outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
+  outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
+  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
+  t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
+  t_sum[[i]] = summary(t[[i]])
+  t_conf[[i]] = confint(t[[i]])
 }
-r_2
-pp_check_all
-results_all_summary
-contrasts_all
+outcomes_freq_sum
+outcomes_freq_results_conf
+t_sum
+t_conf
+### standardized
+### Try linear regression version and see if contrasts are similar
+outcomes_freq = tlc_complete[,13:22]
+outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
+outcomes_freq_results = list()
+outcomes_freq_sum = list()
+outcomes_freq_con = list()
+outcomes_freq_results_conf = list()  
+t = list()
+t_sum = list()
+t_conf = list()
+for(i in 1:length(outcomes_freq_stand)){
+  outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
+  outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
+  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
+  outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
+  t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
+  t_sum[[i]] = summary(t[[i]])
+  t_conf[[i]] = confint(t[[i]])
+}
+outcomes_freq_sum
+outcomes_freq_results_conf
+t_sum
+t_conf
+
 
 ```
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
@@ -521,6 +557,8 @@ for(i in 1:length(measure_invar_names)){
  anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
 anova_results
+
+
 ```
 Get measure 
 
@@ -529,6 +567,11 @@ Get later too much brain power
 ```{r}
 
 ```
+Predictive validity number suicides (probably not, because not enough)
+Suicide ideation and PHQ-9
+
+
+
 RAS psycho
 ```{r}
 head(tlc_data_analysis)
