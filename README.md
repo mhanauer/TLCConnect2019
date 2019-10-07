@@ -199,6 +199,7 @@ Look at means and sds over time
 ```{r}
 head(tlc_complete)
 describe(tlc_complete[,23:42])
+apply(tlc_complete[,23:42], 2, range)
 p_change = data.frame(describe(tlc_complete[,23:42]))
 write.csv(p_change, "p_change.csv", row.names = TRUE)
 ```
@@ -212,6 +213,23 @@ tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,
 describe.factor(tlc_complete$ReferralsEngaged_binary)
 describe.factor(tlc_complete$Attend75Referrals)
 ```
+Check assumptions of normality
+```{r}
+outcomes_tests = tlc_complete[,13:22]
+hist_results = list() 
+qq_results = list()
+shap_results = list()
+for(i in 1:length(outcomes_tests)){
+  hist_results[[i]] = hist(outcomes_tests[[i]])
+  qq_results[[i]] = qqnorm(outcomes_tests[[i]])
+  shap_results[[i]] = shapiro.test(outcomes_tests[[i]])
+}
+shap_results
+```
+
+
+
+
  •	What are the effects of the interventions on participants?
 
 Indiviudal treatment models
@@ -227,29 +245,44 @@ outcomes_t1 = tlc_complete_t1[,13:22]
 describe(outcomes_t1)
 
 results_t1 = list()
+model_t1 = list()
+pp_check = list()
 for(i in 1:length(outcomes_t1)){
-  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ 1, data = outcomes_t1))
+  model_t1[[i]] = stan_glm(outcomes_t1[[i]] ~ 1, data = outcomes_t1)
+  pp_check[[i]] = pp_check(model_t1[[i]])
+  results_t1[[i]] = summary(model_t1[[i]])
 }
 results_t1
+pp_check
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
 outcomes_t2 = tlc_complete_t2[,13:22]
 describe(outcomes_t2)
 
 results_t2 = list()
+model_t2 = list()
+pp_check_t2 = list()
 for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2))
+  model_t2[[i]] = stan_glm(outcomes_t2[[i]] ~ 1, data = outcomes_t2)
+  pp_check_t2[[i]] = pp_check(model_t2[[i]])
+  results_t2[[i]] = summary(model_t2[[i]])
 }
 results_t2
+pp_check_t2
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
 outcomes_t3 = tlc_complete_t3[,13:22]
 
 results_t3 = list()
+model_t3 = list()
+pp_check_t3 = list()
 for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3))
+  model_t3[[i]] = stan_glm(outcomes_t3[[i]] ~ 1, data = outcomes_t3)
+  pp_check_t3[[i]] = pp_check(model_t3[[i]])
+  results_t3[[i]] = summary(model_t3[[i]])
 }
 results_t3
+pp_check_t3
 
 ```
 
@@ -261,14 +294,23 @@ Contrasts are asking whether t3-t2
 
 (8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
+results_all = list()
+results_all_summary = list()
+r_2 = list()
+pp_check_all = list()
+contrasts_all = list()
 outcomes_all = tlc_complete[,13:22]
 for(i in 1:length(outcomes_all)){
   results_all[[i]] = stan_glm(outcomes_all[[i]] ~ factor(TXPackageAssigned), data = tlc_complete)
   results_all_summary[[i]] = summary(results_all[[i]])
+  r_2[[i]] = median(bayes_R2(results_all[[i]]))
+  pp_check_all[[i]] = pp_check(results_all[[i]])
   contrasts_all[[i]] = as.data.frame(results_all[[i]])
   contrasts_all[[i]] = data.frame(contrasts_all[[i]][,2]-contrasts_all[[i]][,3])
   contrasts_all[[i]] = summary(stan_glm(contrasts_all[[i]][,1] ~ 1, data = contrasts_all[[i]]))
 }
+r_2
+pp_check_all
 results_all_summary
 contrasts_all
 
@@ -324,8 +366,9 @@ tlc_complete_t1$SexualOrientation = ifelse(tlc_complete_t1$SexualOrientation == 
 head(tlc_complete_t1)
 
 results_t1 = list()
+model_t1 = list()
 for(i in 1:length(outcomes_t1)){
-  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t1))
+  model_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t1))
 }
 
 results_t1
@@ -355,6 +398,7 @@ for(i in 1:length(outcomes_t3)){
 }
 results_t3
 ```
+
 •	Does effectiveness of the program intervention vary according to clinical risk presentation (e.g., suicide risk score, history of past attempts)? 
 
 ```{r}
@@ -417,6 +461,7 @@ efa_b_3 = fa(r = efa_b_inq, nfactors = 3, fm = "gls")
 anova(efa_b_1, efa_b_2)
 anova(efa_b_2, efa_b_3)
 fa.diagram(efa_b_2)
+fa.diagram(efa_b_3)
 
 ####
 vss(efa_b_inq)
@@ -455,10 +500,12 @@ measure_invar$RaceEthnicity = ifelse(measure_invar$RaceEthnicity != 3, 0, 1)
 describe.factor(measure_invar$Version)
 ###sexual minority versus sexual majority
 describe.factor(measure_invar$SexualOrientation)
-measure_invar$SexualOrientation = ifelse(measure_invar$SexualOrientation == 5, 0,1)
+measure_invar$SexualOrientation = ifelse(measure_invar$SexualOrientation != 5, 0,1)
 measure_invar$Age = as.numeric(measure_invar$Age)
+## Greater than the average age so "older" youth
 measure_invar$Age = ifelse(measure_invar$Age > mean(measure_invar$Age, na.rm = TRUE), 1, 0)
-measure_invar$Gender = ifelse(measure_invar$Gender == 1, 1, 0)
+#female
+measure_invar$Gender = ifelse(measure_invar$Gender == 1, 0, 1)
 
 measure_invar_config = list()
 measure_invar_weak = list()
@@ -619,24 +666,25 @@ summary(fit_1, fit.measures = TRUE, standardized = TRUE)
 Get reliability for two factors, test-retest 
 ```{r}
 inq12_b_fac1 = tlc_data_analysis[,29:34]
+inq12_b_fac1_mean = apply(inq12_b_fac1, 1, mean, na.rm = TRUE)
 inq12_b_fac2 = tlc_data_analysis[,35:40]
+inq12_b_fac2_mean = apply(inq12_b_fac2, 1, mean, na.rm = TRUE)
+
 
 inq12_d_fac1 = tlc_data_analysis[,73:78]
-inq12_b_fac2 = tlc_data_analysis[,79:84]
+inq12_d_fac1_mean = apply(inq12_d_fac1, 1, mean, na.rm = TRUE)
+inq12_d_fac2 = tlc_data_analysis[,79:84]
+inq12_d_fac2_mean = apply(inq12_d_fac2, 1, mean, na.rm = TRUE)
 
 summary(omega(inq12_b_fac1))
 summary(omega(inq12_b_fac2))
 
 
-inq12_b_fac1_retest = inq12_b_fac1
-inq12_b_fac2_retest = inq12_b_fac2
-inq12_b_fac1_retest$time = rep(1,dim(inq12_b_fac1_retest)[1])
-inq12_b_fac2_retest$time = rep(2,dim(inq12_b_fac2_retest)[1])
+hist(inq12_b_fac1_mean)
+qqnorm(inq12_b_fac1_mean)
 
-colnames(inq12_b_fac1_retest) = colnames(inq12_b_fac2_retest)
-inq12_b_d_fac1 = rbind(inq12_b_fac1_retest, inq12_b_fac2_retest)
-inq12_b_d_fac1_complete = na.omit(inq12_b_d_fac1)
-testRetest(inq12_b_d_fac1)
+cor.test(inq12_b_fac1_mean, inq12_d_fac1_mean, method = "kendall")
+cor.test(inq12_b_fac2_mean, inq12_d_fac2_mean, method = "kendall")
 ```
 
 
