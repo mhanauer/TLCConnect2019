@@ -247,14 +247,24 @@ describe(outcomes_t1)
 
 results_t1 = list()
 model_t1 = list()
+con_t1 = list()
 resisuals_check_t1 = list()
 for(i in 1:length(outcomes_t1)){
   model_t1[[i]] = lm(outcomes_t1[[i]] ~ 1, data = outcomes_t1)
   results_t1[[i]] = summary(model_t1[[i]])
+  results_t1[[i]] = results_t1[[i]][[4]][1:2]
+  con_t1[[i]] = confint(model_t1[[i]])
   resisuals_check_t1[[i]] = checkresiduals(model_t1[[i]])
 }
 results_t1
-resisuals_check_t1
+results_t1 = unlist(results_t1)
+results_t1 = matrix(results_t1, ncol = 2, byrow = TRUE)
+write.csv(results_t1, "results_t1.csv", row.names = FALSE)
+results_t1
+con_t1 = data.frame(con_t1)
+con_t1 = matrix(con_t1, ncol = 2, byrow = TRUE)
+write.csv(con_t1, "con_t1.csv", row.names = FALSE)
+
 
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
 outcomes_t2 = tlc_complete_t2[,13:22]
@@ -262,14 +272,23 @@ describe(outcomes_t2)
 
 results_t2 = list()
 model_t2 = list()
+con_t2 = list()
 resisuals_check_t2 = list()
 for(i in 1:length(outcomes_t2)){
   model_t2[[i]] = lm(outcomes_t2[[i]] ~ 1, data = outcomes_t2)
   results_t2[[i]] = summary(model_t2[[i]])
+  results_t2[[i]] = results_t2[[i]][[4]][1:2]
+  con_t2[[i]] = confint(model_t2[[i]])
   resisuals_check_t2[[i]] = checkresiduals(model_t2[[i]])
 }
 results_t2
-resisuals_check_t2
+results_t2 = unlist(results_t2)
+results_t2 = matrix(results_t2, ncol = 2, byrow = TRUE)
+write.csv(results_t2, "results_t2.csv", row.names = FALSE)
+results_t2
+con_t2 = data.frame(con_t2)
+con_t2 = matrix(con_t2, ncol = 2, byrow = TRUE)
+write.csv(con_t2, "con_t2.csv", row.names = FALSE)
 
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
 outcomes_t3 = tlc_complete_t3[,13:22]
@@ -277,16 +296,23 @@ describe(outcomes_t3)
 
 results_t3 = list()
 model_t3 = list()
+con_t3 = list()
 resisuals_check_t3 = list()
 for(i in 1:length(outcomes_t3)){
   model_t3[[i]] = lm(outcomes_t3[[i]] ~ 1, data = outcomes_t3)
   results_t3[[i]] = summary(model_t3[[i]])
+  results_t3[[i]] = results_t3[[i]][[4]][1:2]
+  con_t3[[i]] = confint(model_t3[[i]])
   resisuals_check_t3[[i]] = checkresiduals(model_t3[[i]])
 }
+
+results_t3 = unlist(results_t3)
+results_t3 = matrix(results_t3, ncol = 2, byrow = TRUE)
+write.csv(results_t3, "results_t3.csv", row.names = FALSE)
 results_t3
-resisuals_check_t3
-
-
+con_t3 = data.frame(con_t3)
+con_t3 = matrix(con_t3, ncol = 2, byrow = TRUE)
+write.csv(con_t3, "con_t3.csv", row.names = FALSE)
 
 ```
 
@@ -307,24 +333,46 @@ outcomes_freq_results = list()
 outcomes_freq_sum = list()
 outcomes_freq_con = list()
 outcomes_freq_results_conf = list()  
-
 t = list()
 t_sum = list()
 t_conf = list()
 for(i in 1:length(outcomes_freq)){
   outcomes_freq_results[[i]] = lm(outcomes_freq[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
   outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
+  outcomes_freq_sum[[i]] = outcomes_freq_sum[[i]][[4]][2:3,1:2]
   outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
+  outcomes_freq_results_conf[[i]] = outcomes_freq_results_conf[[i]][2:3,]
   K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
   t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
   t_sum[[i]] = summary(t[[i]])
   t_conf[[i]] = confint(t[[i]])
 }
+### For outcomes
 outcomes_freq_sum
+outcomes_freq_sum = unlist(outcomes_freq_sum)
+write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
+outcomes_freq_sum = read.csv("outcomes_freq_sum.csv", header = TRUE)
+outcomes_freq_sum
+outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
+outcomes_freq_sum = data.frame(outcomes_freq_sum)
+outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum$X1, se_1 = outcomes_freq_sum$X3, estimate_2 = outcomes_freq_sum$X2, se_2 = outcomes_freq_sum$X4)
+write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
+
+### Now for ci of outcomes
 outcomes_freq_results_conf
+outcomes_freq_results_conf = unlist(outcomes_freq_results_conf)
+write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
+outcomes_freq_results_conf = read.csv("outcomes_freq_results_conf.csv", header = TRUE)
+outcomes_freq_results_conf
+outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
+outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
+outcomes_freq_results_conf = data.frame(upper_1 = outcomes_freq_results_conf$X1, lower_1 = outcomes_freq_results_conf$X3, upper_2 = outcomes_freq_results_conf$X2, lower_2 = outcomes_freq_results_conf$X4)
+write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
 t_sum
 t_conf
 ### standardized
+### Try linear regression version and see if contrasts are similar
+library(multcomp)
 ### Try linear regression version and see if contrasts are similar
 outcomes_freq = tlc_complete[,13:22]
 outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
@@ -335,20 +383,41 @@ outcomes_freq_results_conf = list()
 t = list()
 t_sum = list()
 t_conf = list()
-for(i in 1:length(outcomes_freq_stand)){
+for(i in 1:length(outcomes_freq)){
   outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
   outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
-  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
+  outcomes_freq_sum[[i]] = outcomes_freq_sum[[i]][[4]][2:3,1:2]
   outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
+  outcomes_freq_results_conf[[i]] = outcomes_freq_results_conf[[i]][2:3,]
+  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
   t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
   t_sum[[i]] = summary(t[[i]])
   t_conf[[i]] = confint(t[[i]])
 }
+### For outcomes
 outcomes_freq_sum
+outcomes_freq_sum = unlist(outcomes_freq_sum)
+write.csv(outcomes_freq_sum, "outcomes_freq_sum_stand.csv", row.names = FALSE)
+outcomes_freq_sum = read.csv("outcomes_freq_sum_stand.csv", header = TRUE)
+outcomes_freq_sum
+outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
+outcomes_freq_sum = data.frame(outcomes_freq_sum)
+outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum$X1, se_1 = outcomes_freq_sum$X3, estimate_2 = outcomes_freq_sum$X2, se_2 = outcomes_freq_sum$X4)
+write.csv(outcomes_freq_sum, "outcomes_freq_sum_stand.csv", row.names = FALSE)
+
+### Now for ci of outcomes
+outcomes_freq_results_conf
+outcomes_freq_results_conf = unlist(outcomes_freq_results_conf)
+write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf_stand.csv", row.names = FALSE)
+outcomes_freq_results_conf = read.csv("outcomes_freq_results_conf_stand.csv", header = TRUE)
+outcomes_freq_results_conf
+outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
+outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
+outcomes_freq_results_conf = data.frame(upper_1 = outcomes_freq_results_conf$X1, lower_1 = outcomes_freq_results_conf$X3, upper_2 = outcomes_freq_results_conf$X2, lower_2 = outcomes_freq_results_conf$X4)
+write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
 outcomes_freq_results_conf
 t_sum
 t_conf
-
 
 ```
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
@@ -729,13 +798,3 @@ qqnorm(inq12_b_fac1_mean)
 cor.test(inq12_b_fac1_mean, inq12_d_fac1_mean, method = "kendall")
 cor.test(inq12_b_fac2_mean, inq12_d_fac2_mean, method = "kendall")
 ```
-
-
-
-
-
-
-
-
-
-
