@@ -629,15 +629,69 @@ anova_results
 
 
 ```
-Get measure 
+Concurrent and predictive with suicideal ideation
+Get all three measures into total scores and then one data set
+```{r}
+con_pred = data.frame(INQ_b_1_average, INQ_b_2_average, SIS_b_1_average, SIS_b_2_average, SIS_d_1_average, SIS_d_2_average)
+head(con_pred)
+library(Hmisc)
+con_pred
+rcorr(as.matrix(con_pred), type = "spearman")
+cor(con_pred)
+```
 
 Get Measurement invar over time
 Get later too much brain power
 ```{r}
+INQ_b_1 = tlc_data_analysis[,29:34]
+INQ_b_1$id = rep(0, dim(INQ_b_1)[1])
+
+INQ_b_2 = tlc_data_analysis[,35:40]
+INQ_b_2 = 8-INQ_b_2
+INQ_b_2$id = rep(0, dim(INQ_b_2)[1])
+
+INQ_d_1 = tlc_data_analysis[,73:78]
+INQ_d_1$id = rep(1, dim(INQ_d_1)[1])
+
+INQ_d_2 = tlc_data_analysis[,79:84]
+INQ_d_2 = 8-INQ_d_2
+INQ_d_2$id = rep(1, dim(INQ_d_2)[1])
+
+## Change names to be the same then rbind
+colnames(INQ_d_1) = colnames(INQ_b_1)
+colnames(INQ_d_2) = colnames(INQ_b_2)
+
+INQ_b_d_1 = rbind(INQ_b_1, INQ_d_1)
+INQ_b_d_2 = rbind(INQ_b_2, INQ_d_2)
+INQ_b_d = cbind(INQ_b_d_1, INQ_b_d_2)
+INQ_b_d
+```
+Now invar with time
+```{r}
+measure_invar_config = list()
+measure_invar_weak = list()
+measure_invar_strong = list()
+measure_invar_strict = list()
+anova_results = list()
+library(lavaan)
+
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
+          INQ12_2 =~ INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
+
+
+measure_invar_names = names(INQ_b_d)[14]
+for(i in 1:length(measure_invar_names)){
+ measure_invar_config[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
+ measure_invar_weak[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
+ measure_invar_strong[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
+ measure_invar_strict[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
+ anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
+}
+anova_results
 
 ```
-Predictive validity number suicides (probably not, because not enough)
-Suicide ideation and PHQ-9
+
+
 
 
 
