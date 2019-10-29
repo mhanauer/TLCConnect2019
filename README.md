@@ -154,8 +154,19 @@ head(tlc_data_analysis)
 tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff, RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4)
 head(tlc_data_analysis_average)
 
-# 
+tlc_data_analysis_average 
 ```
+Does regression analysis work with missing data (different n's)
+```{r}
+lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
+lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
+summary(lm_phq9)
+summary(lm_ras)
+tlc_data_analysis_average 
+RAS_1_diff
+```
+
+
 Evaluate missing data
 Get percentage of missing data for each variable
 Test missing assumption
@@ -167,7 +178,35 @@ library(naniar)
 #TestMCARNormality(tlc_data_analysis_average)
 dim(tlc_data_analysis_average)
 miss_var_summary(tlc_data_analysis_average)
+
+tlc_data_analysis_average
+
+### Significant missing data
+TestMCARNormality(tlc_data_analysis_average[,1:20])
+
+###### Get just those who attempted a discharge
+dis_dat =  tlc_data_analysis_average[,33:42]
+dis_dat = apply(dis_dat, 1, sum, na.rm = TRUE)
+dis_dat = ifelse(dis_dat > 0, 1, 0)
+tlc_data_analysis_average$dis_dat = dis_dat
+tlc_data_analysis_average
+
+tlc_data_analysis_average_att_dis = subset(tlc_data_analysis_average, dis_dat == 1)
+
+lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
+lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
+lm_inq_1 = lm(SSMI_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
+summary(lm_ras2)
+summary(lm_ras)
+summary(lm_inq_1)
+
+describe.factor(tlc_data_analysis_average_att_dis$Gender)
+
+dim(tlc_data_analysis_average_att_dis)
+
 tlc_complete = na.omit(tlc_data_analysis_average)
+
+
 1- (dim(tlc_complete)[1]/dim(tlc_data_analysis_average)[1])
 dim(tlc_complete)[1]
 ```
