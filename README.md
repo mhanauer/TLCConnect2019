@@ -156,15 +156,34 @@ head(tlc_data_analysis_average)
 
 tlc_data_analysis_average 
 ```
-Does regression analysis work with missing data (different n's)
+###########################
+Evaluating missing data without PHQ9 and hours of psychothrapy
 ```{r}
-lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
-lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
-summary(lm_phq9)
-summary(lm_ras)
-tlc_data_analysis_average 
-RAS_1_diff
+phq_9_missing = tlc_data_analysis_average
+
+phq_9_missing$PHQ9_b = NULL
+phq_9_missing$PHQ9_d = NULL
+phq_9_missing$PHQ9_diff = NULL
+phq_9_missing$HoursPsychotherapy = NULL
+
+## For getting rid of phq9
+TestMCARNormality(phq_9_missing[,c(1:5, 12:20)])
+
+###### Get just those who attempted a discharge
+dis_dat =  phq_9_missing[,33:42]
+dis_dat = apply(dis_dat, 1, sum, na.rm = TRUE)
+dis_dat = ifelse(dis_dat > 0, 1, 0)
+phq_9_missing$dis_dat = dis_dat
+phq_9_missing_attempt = subset(phq_9_missing, dis_dat == 1)
+
+
 ```
+
+
+
+
+
+
 
 
 Evaluate missing data
@@ -175,13 +194,17 @@ Get rid of missing data
 library(MissMech)
 library(naniar)
 ## Ok to delete data
-#TestMCARNormality(tlc_data_analysis_average)
 dim(tlc_data_analysis_average)
 miss_var_summary(tlc_data_analysis_average)
+
+
 
 tlc_data_analysis_average
 
 ### Significant missing data
+
+
+### With all outcomes
 TestMCARNormality(tlc_data_analysis_average[,1:20])
 
 ###### Get just those who attempted a discharge
@@ -191,20 +214,10 @@ dis_dat = ifelse(dis_dat > 0, 1, 0)
 tlc_data_analysis_average$dis_dat = dis_dat
 tlc_data_analysis_average
 
-tlc_data_analysis_average_att_dis = subset(tlc_data_analysis_average, dis_dat == 1)
+tlc_complete = subset(tlc_data_analysis_average, dis_dat == 1)
+dim(tlc_complete)
 
-lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-lm_inq_1 = lm(SSMI_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-summary(lm_ras2)
-summary(lm_ras)
-summary(lm_inq_1)
-
-describe.factor(tlc_data_analysis_average_att_dis$Gender)
-
-dim(tlc_data_analysis_average_att_dis)
-
-tlc_complete = na.omit(tlc_data_analysis_average)
+#tlc_complete = na.omit(tlc_data_analysis_average)
 
 
 1- (dim(tlc_complete)[1]/dim(tlc_data_analysis_average)[1])
@@ -395,7 +408,7 @@ outcomes_freq_sum
 outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
 outcomes_freq_sum = data.frame(outcomes_freq_sum)
 outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum$X1, se_1 = outcomes_freq_sum$X3, estimate_2 = outcomes_freq_sum$X2, se_2 = outcomes_freq_sum$X4)
-write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
+write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv")
 
 ### Now for ci of outcomes
 outcomes_freq_results_conf
@@ -406,7 +419,7 @@ outcomes_freq_results_conf
 outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
 outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
 outcomes_freq_results_conf = data.frame(upper_1 = outcomes_freq_results_conf$X1, lower_1 = outcomes_freq_results_conf$X3, upper_2 = outcomes_freq_results_conf$X2, lower_2 = outcomes_freq_results_conf$X4)
-write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
+write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv")
 t_sum
 t_conf
 ### standardized
