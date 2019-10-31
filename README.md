@@ -361,7 +361,7 @@ var_names = rep(names(outcomes_d_t3), 3)
 within_results_target = data.frame(var_names, within_results_target) 
 within_results_target
 
-write.csv(within_results, "within_results.csv")
+write.csv(within_results_target, "within_results_target.csv", row.names = FALSE)
 ```
 
 Now comparison models for each 
@@ -372,24 +372,31 @@ Contrasts are asking whether t3-t2
 
 (8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
 ```{r}
-#### Regular
+### standardized
+### Try linear regression version and see if contrasts are similar
 library(multcomp)
 ### Try linear regression version and see if contrasts are similar
-outcomes_freq = tlc_complete[,13:22]
+outcomes_freq = tlc_complete[,33:42]
 outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
 outcomes_freq_results = list()
 outcomes_freq_sum = list()
 outcomes_freq_con = list()
-outcomes_freq_results_conf = list()  
+outcomes_freq_results_conf = list()
+outcomes_freq_results_check = list()
 t = list()
 t_sum = list()
 t_conf = list()
+
+test_r = rlm(tlc_complete$RAS_1_diff ~ TXPackageAssigned, data = tlc_complete)
+summary(test_r)
+confint(test_r)
 for(i in 1:length(outcomes_freq)){
-  outcomes_freq_results[[i]] = lm(outcomes_freq[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
+  outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
   outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
   outcomes_freq_sum[[i]] = outcomes_freq_sum[[i]][[4]][2:3,1:2]
   outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
   outcomes_freq_results_conf[[i]] = outcomes_freq_results_conf[[i]][2:3,]
+  outcomes_freq_results_check[[i]] = gvlma(outcomes_freq_results[[i]])
   K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
   t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
   t_sum[[i]] = summary(t[[i]])
@@ -402,57 +409,20 @@ write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
 outcomes_freq_sum = read.csv("outcomes_freq_sum.csv", header = TRUE)
 outcomes_freq_sum
 outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
-outcomes_freq_sum = data.frame(outcomes_freq_sum)
-outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum$X1, se_1 = outcomes_freq_sum$X3, estimate_2 = outcomes_freq_sum$X2, se_2 = outcomes_freq_sum$X4)
-write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
+outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum[,1], se_1 = outcomes_freq_sum[,3], estimate_2 = outcomes_freq_sum[,2], se_2 = outcomes_freq_sum[,4])
 
-### Now for ci of outcomes
-outcomes_freq_results_conf
-outcomes_freq_results_conf = unlist(outcomes_freq_results_conf)
-write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
-outcomes_freq_results_conf = read.csv("outcomes_freq_results_conf.csv", header = TRUE)
-outcomes_freq_results_conf
-outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
-outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
-outcomes_freq_results_conf = data.frame(upper_1 = outcomes_freq_results_conf$X1, lower_1 = outcomes_freq_results_conf$X3, upper_2 = outcomes_freq_results_conf$X2, lower_2 = outcomes_freq_results_conf$X4)
-write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
-t_sum
-t_conf
-### standardized
-### Try linear regression version and see if contrasts are similar
-library(multcomp)
-### Try linear regression version and see if contrasts are similar
-outcomes_freq = tlc_complete[,13:22]
-outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
-outcomes_freq_results = list()
-outcomes_freq_sum = list()
-outcomes_freq_con = list()
-outcomes_freq_results_conf = list()  
-t = list()
-t_sum = list()
-t_conf = list()
-for(i in 1:length(outcomes_freq)){
-  outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
-  outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
-  outcomes_freq_sum[[i]] = outcomes_freq_sum[[i]][[4]][2:3,1:2]
-  outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
-  outcomes_freq_results_conf[[i]] = outcomes_freq_results_conf[[i]][2:3,]
-  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
-  t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
-  t_sum[[i]] = summary(t[[i]])
-  t_conf[[i]] = confint(t[[i]])
-}
-### For outcomes
-outcomes_freq_sum
-outcomes_freq_sum = unlist(outcomes_freq_sum)
-write.csv(outcomes_freq_sum, "outcomes_freq_sum_stand.csv", row.names = FALSE)
-outcomes_freq_sum = read.csv("outcomes_freq_sum_stand.csv", header = TRUE)
-outcomes_freq_sum
-outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
-outcomes_freq_sum = data.frame(outcomes_freq_sum)
-outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum$X1, se_1 = outcomes_freq_sum$X3, estimate_2 = outcomes_freq_sum$X2, se_2 = outcomes_freq_sum$X4)
-write.csv(outcomes_freq_sum, "outcomes_freq_sum_stand.csv", row.names = FALSE)
+est1 = data.frame(estimate = outcomes_freq_sum$estimate_1)
+est2 = data.frame(estimate = outcomes_freq_sum$estimate_2)
+ests = rbind(est1, est2)
+ests
 
+se1 = data.frame(se = outcomes_freq_sum$se_1)
+se2 = data.frame(se = outcomes_freq_sum$se_2)
+ses = rbind(se1, se2)
+ses
+
+ests_ses = round(data.frame(ests, ses),3)
+ests_ses
 ### Now for ci of outcomes
 outcomes_freq_results_conf
 outcomes_freq_results_conf = unlist(outcomes_freq_results_conf)
@@ -461,13 +431,66 @@ outcomes_freq_results_conf = read.csv("outcomes_freq_results_conf_stand.csv", he
 outcomes_freq_results_conf
 outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
 outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
-outcomes_freq_results_conf = data.frame(upper_1 = outcomes_freq_results_conf$X1, lower_1 = outcomes_freq_results_conf$X3, upper_2 = outcomes_freq_results_conf$X2, lower_2 = outcomes_freq_results_conf$X4)
-write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf.csv", row.names = FALSE)
+outcomes_freq_results_conf = data.frame(lower_1 = outcomes_freq_results_conf$X1, upper_1 = outcomes_freq_results_conf$X3, lower_2 = outcomes_freq_results_conf$X2, upper_2 = outcomes_freq_results_conf$X4)
 outcomes_freq_results_conf
+
+ci_1_upper = data.frame(upper = outcomes_freq_results_conf$upper_1)
+ci_2_upper = data.frame(upper = outcomes_freq_results_conf$upper_2)
+ci_upper = rbind(ci_1_upper, ci_2_upper)
+
+ci_1_lower = data.frame(lower = outcomes_freq_results_conf$lower_1)
+ci_2_lower = data.frame(lower = outcomes_freq_results_conf$lower_2)
+ci_lower = rbind(ci_1_lower, ci_2_lower)
+
+ci_upper_lower = round(data.frame(ci_lower, ci_upper),3)
+
+sig_target_between = ifelse(ci_upper_lower$lower < 0 & ci_upper_lower$upper > 0, "", "*")
+
+
+
+ci_target_between = paste0(ci_upper_lower$lower, sep = ",", ci_upper_lower$upper)
+
+
+var_names_between = rep(names(outcomes_freq), 2)
+between_target_results = data.frame(var_names_between, ests_ses, ci_target_between, sig_target_between)
+between_target_results
+
+write.csv(between_target_results, "between_target_results.csv", row.names = FALSE)
+
 t_sum
 t_conf
 
 ```
+###########################
+SIS outcomes associated with it
+##########################
+```{r}
+outcomes_freq
+corr.test(outcomes_freq)
+
+suicide_idea_model_0 = lm(SIS_1_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
+vif(suicide_idea_model_0)
+suicide_idea_model_sum_0 = summary(suicide_idea_model_0)
+suicide_idea_model_sum_0
+round(suicide_idea_model_sum_0$coefficients,3)
+
+suicide_idea_model_1 = lm(SIS_1_diff ~ RAS_1_diff  + RAS_3_diff + INQ_1_diff + INQ_2_diff  + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
+summary(suicide_idea_model_1)
+
+
+checK_assump = gvlma(suicide_idea_model)
+checK_assump
+par(mar=c(1,1,1,1))
+plot.gvlma(checK_assump)
+library(car)
+checkresiduals(suicide_idea_model)
+
+
+```
+
+
+
+
 Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
 
 •	What program/contextual factors are associated with which outcomes?
