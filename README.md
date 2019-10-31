@@ -8,12 +8,9 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-Load data
-Double check data fall into each category
-Do baseline descriptives with all baseline data and put the percentage of missing data (just calcualte for now)
-Then get analytical sample 
-Then set up indiviudal regression for outcome and run a loop (set outcomes in own data set and run outcome on that data set)
-Same for comparisons
+##################
+Data cleaning
+###############
 
 ```{r}
 library(prettyR)
@@ -25,12 +22,7 @@ head(tlc_data)
 colnames(tlc_data)[1] = "YouthID"
 head(tlc_data)
 
-```
-Now grab the variables that you want
-YouthID, Age, Gender, HispanicLatino, RaceEthnicity, SexualOrientation, RAS_B_D's, INQ_B_D's, SSMI_B_D's, SIS_B_D's, PHQ9_1 and PHQ9_4, CSSRS1, and CSSRS4 (probably get rid of this var)
 
-ReferralsEngaged, AttendFirstAppointment, SuicidalityWarrentingCrisisVisit
-```{r}
 describe.factor(tlc_data$CSSRS1)
 describe.factor(tlc_data$CSSRS4)
 describe.factor(tlc_data$AttemptSuicide)
@@ -38,14 +30,11 @@ head(tlc_data)
 tlc_data_analysis = tlc_data[,c(1,2,5:9, 11, 13:56, 69:112,118,124)]
 tlc_data_analysis = data.frame(tlc_data_analysis, HoursPsychotherapy = tlc_data$HoursPsychotherapy, CurrentlyEngaged  =  tlc_data$CurrentlyEngaged, ReferralsEngaged = tlc_data$ReferralsEngaged, Attend75Referrals = tlc_data$Attend75Referrals, ReferralsProvided = tlc_data$ReferralsProvided, CrisisPlan80Time = tlc_data$CrisisPlan80Time)
 head(tlc_data_analysis)
-```
-Check all variables are within the ranges
-```{r}
+#Check all variables are within the ranges
 apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
 head(tlc_data_analysis)
-```
-Create average scores.  Use average scores so you can keep if one out of total is missing and have a accurate assessment
-```{r}
+
+### Generate average scores
 head(tlc_data_analysis)
 
 #f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
@@ -130,7 +119,6 @@ SIS_d_1_average = apply(SIS_d_1_average, 1, mean, na.rm =TRUE)
 SIS_d_2_average = SIS_d_average[,5:7]
 SIS_d_2_average = apply(SIS_d_2_average, 1, mean, na.rm =TRUE)
 
-
 ### Create difference scores
 RAS_1_diff = RAS_d_1_average - RAS_b_1_average
 RAS_2_diff = RAS_d_2_average - RAS_b_2_average
@@ -147,26 +135,16 @@ SIS_1_diff = SIS_d_1_average-SIS_b_1_average
 SIS_2_diff = SIS_d_2_average-SIS_b_2_average
 
 PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
-sum(is.na(PHQ9_diff))
-head(tlc_data_analysis)
+
 #### Create new data with average scores
-#apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff, RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4)
+apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4, RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff)
+
 head(tlc_data_analysis_average)
 
 tlc_data_analysis_average 
-```
-Does regression analysis work with missing data (different n's)
-```{r}
-lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
-lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average)
-summary(lm_phq9)
-summary(lm_ras)
-tlc_data_analysis_average 
-RAS_1_diff
-```
 
-
+```
 Evaluate missing data
 Get percentage of missing data for each variable
 Test missing assumption
@@ -177,33 +155,37 @@ library(naniar)
 ## Ok to delete data
 #TestMCARNormality(tlc_data_analysis_average)
 dim(tlc_data_analysis_average)
-miss_var_summary(tlc_data_analysis_average)
+var_missing =  miss_var_summary(tlc_data_analysis_average)
+var_missing = data.frame(var_missing)
+var_missing
+write.csv(var_missing, "var_missing.csv", row.names = FALSE)
 
 tlc_data_analysis_average
 
-### Significant missing data
-TestMCARNormality(tlc_data_analysis_average[,1:20])
+### No psychotherapy or phq-9 still reject
+no_phq9_psycho_p_value = TestMCARNormality(tlc_data_analysis_average[,c(1:6,8:20)])
+no_phq9_psycho_p_value = no_phq9_psycho_p_value$pnormality 
 
-###### Get just those who attempted a discharge
-dis_dat =  tlc_data_analysis_average[,33:42]
-dis_dat = apply(dis_dat, 1, sum, na.rm = TRUE)
-dis_dat = ifelse(dis_dat > 0, 1, 0)
-tlc_data_analysis_average$dis_dat = dis_dat
-tlc_data_analysis_average
+no_phq9_psycho_n = tlc_data_analysis_average[,c(1:6,8:20)]
+no_phq9_psycho_n = na.omit(no_phq9_psycho_n)
+no_phq9_psycho_n = dim(no_phq9_psycho_n)[1]
+no_phq9_psycho_vars = paste0("PHQ-9", sep = ",", "Psychotherapy")
 
-tlc_data_analysis_average_att_dis = subset(tlc_data_analysis_average, dis_dat == 1)
+no_phq9_psycho_dat = data.frame(missing_vars = no_phq9_psycho_vars, p_value = no_phq9_psycho_p_value, n = no_phq9_psycho_n)
+### No other EHR reported variables 
+non_ehr_p_value = TestMCARNormality(tlc_data_analysis_average[,c(1:5,13:20)])
+non_ehr_p_value = non_ehr_p_value$pnormality
+non_ehr_n = na.omit(tlc_data_analysis_average[,c(1:5,13:20)])
+non_ehr_n = dim(non_ehr_n)[1]
+non_ehr_vars = paste0("EHR")
 
-lm_ras = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-lm_phq9 = lm(PHQ9_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-lm_inq_1 = lm(SSMI_diff ~ factor(TXPackageAssigned), data = tlc_data_analysis_average_att_dis)
-summary(lm_ras2)
-summary(lm_ras)
-summary(lm_inq_1)
+non_ehr_dat = data.frame(missing_vars = non_ehr_vars, p_value = non_ehr_p_value, n = non_ehr_n)
 
-describe.factor(tlc_data_analysis_average_att_dis$Gender)
+missing_results = rbind(no_phq9_psycho_dat, non_ehr_dat)
+write.csv(missing_results, "missing_results.csv", row.names = FALSE)
+### Get rid PHQ-9
 
-dim(tlc_data_analysis_average_att_dis)
-
+### Once you figure out the final variables insert here.
 tlc_complete = na.omit(tlc_data_analysis_average)
 
 
@@ -219,6 +201,7 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
 head(tlc_complete)
+### 1
 dim(tlc_complete)
 describe.factor(tlc_complete$TXPackageAssigned)
 describe.factor(tlc_complete$Gender)
@@ -231,16 +214,39 @@ sd(tlc_complete$HoursPsychotherapy)
 describe.factor(tlc_complete$CurrentlyEngaged)
 mean(tlc_complete$ReferralsProvided)
 sd(tlc_complete$ReferralsProvided)
+### 3
 describe.factor(tlc_complete$CrisisPlan80Time)
 head(tlc_complete)
 ```
-Look at means and sds over time 
+(4) self-stigma of mental illness, thwarted belongingness, and perceived burdensomeness will each decrease 30% among youth enrolled in enhanced post-crisis follow-up by the discharge assessment; and 
+(5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention
+(6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention
 ```{r}
 head(tlc_complete)
-describe(tlc_complete[,23:42])
-apply(tlc_complete[,23:42], 2, range)
-p_change = data.frame(describe(tlc_complete[,23:42]))
-write.csv(p_change, "p_change.csv", row.names = TRUE)
+library(psych)
+describe_results_base =  describe(tlc_complete[,13:22])
+describe_results_base = describe_results_base[,c(3,4,8,9)]
+describe_results_base = round(describe_results_base, 3)
+range_base = paste0(describe_results_base$min, sep = ",", describe_results_base$max)
+range_base = data.frame(range_base = range_base)
+describe_results_base = data.frame(describe_results_base,range_base)
+describe_results_base
+describe_results_base = describe_results_base[,-c(3:4)] 
+describe_results_base
+write.csv(describe_results_base, "describe_results_base.csv", row.names = TRUE)
+
+#####################
+describe_results_discharge =  describe(tlc_complete[,23:32])
+describe_results_discharge = describe_results_discharge[,c(3,4,8,9)]
+describe_results_discharge = round(describe_results_discharge, 3)
+range_discharge = paste0(describe_results_discharge$min, sep = ",", describe_results_discharge$max)
+range_discharge = data.frame(range_discharge = range_discharge)
+describe_results_discharge = data.frame(describe_results_discharge,range_discharge)
+describe_results_discharge
+describe_results_discharge = describe_results_discharge[,-c(3:4)] 
+describe_results_discharge
+write.csv(describe_results_discharge, "describe_results_discharge.csv", row.names = TRUE)
+
 ```
 (1)	a minimum of 5,660  youth will receive all components of the enhanced post-crisis follow-up intervention by the discharge survey 
 
@@ -252,6 +258,8 @@ tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,
 describe.factor(tlc_complete$ReferralsEngaged_binary)
 describe.factor(tlc_complete$Attend75Referrals)
 ```
+
+
 Check assumptions of normality
 ```{r}
 outcomes_tests = tlc_complete[,13:22]
@@ -266,9 +274,6 @@ for(i in 1:length(outcomes_tests)){
 shap_results
 ```
 
-
-
-
  •	What are the effects of the interventions on participants?
 
 Indiviudal treatment models
@@ -279,80 +284,84 @@ Put together model for each of the outcomes.  Then run loop on the outcomes
 (6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention. 
 
 ```{r}
-library(forecast)
+########## Phone only
+library(gvlma)
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
-outcomes_t1 = tlc_complete_t1[,13:22]
-describe(outcomes_t1)
+outcomes_b_t1 = tlc_complete_t1[13:22]
+outcomes_d_t1 = tlc_complete_t1[23:32]
+library(effsize)
 
 results_t1 = list()
-model_t1 = list()
-con_t1 = list()
-resisuals_check_t1 = list()
-for(i in 1:length(outcomes_t1)){
-  model_t1[[i]] = lm(outcomes_t1[[i]] ~ 1, data = outcomes_t1)
-  results_t1[[i]] = summary(model_t1[[i]])
-  results_t1[[i]] = results_t1[[i]][[4]][1:2]
-  con_t1[[i]] = confint(model_t1[[i]])
-  resisuals_check_t1[[i]] = checkresiduals(model_t1[[i]])
+for(i in 1:length(outcomes_b_t1)){
+  results_t1[[i]] = cohen.d(outcomes_d_t1[[i]],outcomes_b_t1[[i]], paired = TRUE)
+  results_t1[[i]] = results_t1[[i]][3:5]
 }
-results_t1
 results_t1 = unlist(results_t1)
-results_t1 = matrix(results_t1, ncol = 2, byrow = TRUE)
-write.csv(results_t1, "results_t1.csv", row.names = FALSE)
+results_t1 = matrix(results_t1, ncol= 4, byrow = TRUE)
+colnames(results_t1) = c("d", "sd", "lower", "upper")
+results_t1 = data.frame(round(results_t1,3))
+results_t1$sig = ifelse(results_t1$lower < 0 & results_t1$upper > 0, "", "*")
 results_t1
-con_t1 = data.frame(con_t1)
-con_t1 = matrix(con_t1, ncol = 2, byrow = TRUE)
-write.csv(con_t1, "con_t1.csv", row.names = FALSE)
+
+ci_95 = paste0(results_t1$lower, sep = ",", results_t1$upper)
+results_t1 = data.frame(results_t1, ci_95)
+results_t1 = results_t1[,-c(3:4)]
+results_t1
 
 
+########## Phone + Text
 tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
-outcomes_t2 = tlc_complete_t2[,13:22]
-describe(outcomes_t2)
+outcomes_b_t2 = tlc_complete_t2[13:22]
+outcomes_d_t2 = tlc_complete_t2[23:32]
+library(effsize)
 
 results_t2 = list()
-model_t2 = list()
-con_t2 = list()
-resisuals_check_t2 = list()
-for(i in 1:length(outcomes_t2)){
-  model_t2[[i]] = lm(outcomes_t2[[i]] ~ 1, data = outcomes_t2)
-  results_t2[[i]] = summary(model_t2[[i]])
-  results_t2[[i]] = results_t2[[i]][[4]][1:2]
-  con_t2[[i]] = confint(model_t2[[i]])
-  resisuals_check_t2[[i]] = checkresiduals(model_t2[[i]])
+for(i in 1:length(outcomes_b_t2)){
+  results_t2[[i]] = cohen.d(outcomes_d_t2[[i]],outcomes_b_t2[[i]], paired = TRUE)
+  results_t2[[i]] = results_t2[[i]][3:5]
 }
-results_t2
 results_t2 = unlist(results_t2)
-results_t2 = matrix(results_t2, ncol = 2, byrow = TRUE)
-write.csv(results_t2, "results_t2.csv", row.names = FALSE)
+results_t2 = matrix(results_t2, ncol= 4, byrow = TRUE)
+colnames(results_t2) = c("d", "sd", "lower", "upper")
+results_t2 = data.frame(round(results_t2,3))
+results_t2$sig = ifelse(results_t2$lower < 0 & results_t2$upper > 0, "", "*")
 results_t2
-con_t2 = data.frame(con_t2)
-con_t2 = matrix(con_t2, ncol = 2, byrow = TRUE)
-write.csv(con_t2, "con_t2.csv", row.names = FALSE)
 
+ci_95 = paste0(results_t2$lower, sep = ",", results_t2$upper)
+results_t2 = data.frame(results_t2, ci_95)
+results_t2 = results_t2[,-c(3:4)]
+results_t2
+
+####### Phone + text + face to face
 tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
-outcomes_t3 = tlc_complete_t3[,13:22]
-describe(outcomes_t3)
+outcomes_b_t3 = tlc_complete_t3[13:22]
+outcomes_d_t3 = tlc_complete_t3[23:32]
+library(effsize)
 
 results_t3 = list()
-model_t3 = list()
-con_t3 = list()
-resisuals_check_t3 = list()
-for(i in 1:length(outcomes_t3)){
-  model_t3[[i]] = lm(outcomes_t3[[i]] ~ 1, data = outcomes_t3)
-  results_t3[[i]] = summary(model_t3[[i]])
-  results_t3[[i]] = results_t3[[i]][[4]][1:2]
-  con_t3[[i]] = confint(model_t3[[i]])
-  resisuals_check_t3[[i]] = checkresiduals(model_t3[[i]])
+for(i in 1:length(outcomes_b_t3)){
+  results_t3[[i]] = cohen.d(outcomes_d_t3[[i]],outcomes_b_t3[[i]], paired = TRUE)
+  results_t3[[i]] = results_t3[[i]][3:5]
 }
-
 results_t3 = unlist(results_t3)
-results_t3 = matrix(results_t3, ncol = 2, byrow = TRUE)
-write.csv(results_t3, "results_t3.csv", row.names = FALSE)
+results_t3 = matrix(results_t3, ncol= 4, byrow = TRUE)
+colnames(results_t3) = c("d", "sd", "lower", "upper")
+results_t3 = data.frame(round(results_t3,3))
+results_t3$sig = ifelse(results_t3$lower < 0 & results_t3$upper > 0, "", "*")
 results_t3
-con_t3 = data.frame(con_t3)
-con_t3 = matrix(con_t3, ncol = 2, byrow = TRUE)
-write.csv(con_t3, "con_t3.csv", row.names = FALSE)
 
+ci_95 = paste0(results_t3$lower, sep = ",", results_t3$upper)
+results_t3 = data.frame(results_t3, ci_95)
+results_t3 = results_t3[,-c(3:4)]
+results_t3
+
+########### Combine all results
+within_results_target = rbind(results_t1, results_t2, results_t3)
+var_names = rep(names(outcomes_d_t3), 3)
+within_results_target = data.frame(var_names, within_results_target) 
+within_results_target
+
+write.csv(within_results, "within_results.csv")
 ```
 
 Now comparison models for each 
