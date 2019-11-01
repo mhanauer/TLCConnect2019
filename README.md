@@ -152,45 +152,50 @@ Get rid of missing data
 ```{r}
 library(MissMech)
 library(naniar)
-## Ok to delete data
-#TestMCARNormality(tlc_data_analysis_average)
+### Assessing global missing data 
 dim(tlc_data_analysis_average)
 var_missing =  miss_var_summary(tlc_data_analysis_average)
 var_missing = data.frame(var_missing)
 var_missing
 write.csv(var_missing, "var_missing.csv", row.names = FALSE)
+full_n = dim(tlc_data_analysis_average)[1]
+############## Getting rid of anybody who doesn't have a follow-up
+quasi_itt =  apply(tlc_data_analysis_average[,33:42], 1, mean, na.rm = TRUE)
+quasi_itt = ifelse(is.na(quasi_itt), 0, 1)
 
-tlc_data_analysis_average
+quasi_itt_dat = data.frame(tlc_data_analysis_average, quasi_itt)
+quasi_itt_dat = subset(quasi_itt_dat, any_dis == 1)
+quasi_itt_n = dim(quasi_itt_dat)[1]
+### Percentage of drop for quasi itt
+quasi_itt_drop_out_rate = 1-(dim(quasi_itt_dat)[1]/dim(tlc_data_analysis_average)[1])
+quasi_itt_drop_out_rate
+quasi_itt_missing_percent = prop_miss_case(quasi_itt_dat)
+####### 
+quasi_tot_dat =  quasi_itt_dat 
+quasi_tot_dat = na.omit(quasi_tot_dat)
+quasi_tot_n = dim(quasi_tot_dat)[1]
+quasi_tot_drop_out_rate = 1-(dim(quasi_tot_dat)[1]/dim(tlc_data_analysis_average)[1])
+
 
 ### No psychotherapy or phq-9 still reject
-no_phq9_psycho_p_value = TestMCARNormality(tlc_data_analysis_average[,c(1:6,8:20)])
-no_phq9_psycho_p_value = no_phq9_psycho_p_value$pnormality 
+no_phq9_psycho_dat = quasi_tot_dat
+no_phq9_psycho_dat$PHQ9_b = NULL
+no_phq9_psycho_dat$PHQ9_d = NULL
+no_phq9_psycho_dat$PHQ9_diff = NULL
+no_phq9_psycho_dat$HoursPsychotherapy = NULL
+no_phq9_psycho_dat_complete = na.omit(no_phq9_psycho_dat)
+quasi_tot_no_phq9_psycho_n = dim(no_phq9_psycho_dat_complete)[1]
+quasi_tot_no_phq9_psycho_n
 
-no_phq9_psycho_n = tlc_data_analysis_average[,c(1:6,8:20)]
-no_phq9_psycho_n = na.omit(no_phq9_psycho_n)
-no_phq9_psycho_n = dim(no_phq9_psycho_n)[1]
-no_phq9_psycho_vars = paste0("PHQ-9", sep = ",", "Psychotherapy")
-
-no_phq9_psycho_dat = data.frame(missing_vars = no_phq9_psycho_vars, p_value = no_phq9_psycho_p_value, n = no_phq9_psycho_n)
-### No other EHR reported variables 
-non_ehr_p_value = TestMCARNormality(tlc_data_analysis_average[,c(1:5,13:20)])
-non_ehr_p_value = non_ehr_p_value$pnormality
-non_ehr_n = na.omit(tlc_data_analysis_average[,c(1:5,13:20)])
-non_ehr_n = dim(non_ehr_n)[1]
-non_ehr_vars = paste0("EHR")
-
-non_ehr_dat = data.frame(missing_vars = non_ehr_vars, p_value = non_ehr_p_value, n = non_ehr_n)
-
-missing_results = rbind(no_phq9_psycho_dat, non_ehr_dat)
-write.csv(missing_results, "missing_results.csv", row.names = FALSE)
-### Get rid PHQ-9
-
-### Once you figure out the final variables insert here.
-tlc_complete = na.omit(tlc_data_analysis_average)
+missing_results = data.frame(full_n, quasi_itt_n, quasi_tot_n, quasi_itt_drop_out_rate, quasi_tot_drop_out_rate, quasi_tot_no_phq9_psycho_n)
+missing_results = round(missing_results, 3)
+missing_results = t(missing_results)
+colnames(missing_results)= "n_percent"
+#### Add a column with explainations for each of them
 
 
-1- (dim(tlc_complete)[1]/dim(tlc_data_analysis_average)[1])
-dim(tlc_complete)[1]
+write.csv(missing_results, "missing_results.csv")
+
 ```
 Descriptive statistics
 
