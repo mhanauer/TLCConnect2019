@@ -536,14 +536,7 @@ checkresiduals(resolved_model)
 ###########################
 Imputted results
 ###########################
-
-######################
-Within target results
-######################
-
-######################
-Between target
-######################
+Imputation
 ```{r}
 library(Amelia)
 impute_dat = quasi_itt_dat
@@ -566,6 +559,47 @@ summary(a.out)
 disperse(a.out)
 
 impute_dat_loop = a.out$imputations
+```
+
+
+######################
+Within target results
+######################
+Phone only
+Get means and sds then meld together so you don't have to deal with it, then you can calcaulate cohen's d by hand for all of them.
+```{r}
+### Subset the data for just the variables that you want
+tlc_within_dat_impute = list()
+tlc_within_dat_impute_mean = list()
+tlc_within_dat_impute_sd = list()
+tlc_results_within_impute_t1 = list()
+for(i in 1:length(impute_dat_loop)){
+  tlc_within_dat_impute[[i]] = impute_dat_loop[[i]][10:29]
+  tlc_within_dat_impute_mean[[i]] = apply(tlc_within_dat_impute[[i]], 2, mean)
+  tlc_within_dat_impute_sd[[i]] = apply(tlc_within_dat_impute[[i]], 2, sd)
+}
+tlc_within_dat_impute_mean
+tlc_within_dat_impute_mean = unlist(tlc_within_dat_impute_mean)
+length(tlc_within_dat_impute_mean)
+tlc_within_dat_impute_mean = matrix(tlc_within_dat_impute_mean, ncol = 20, byrow = TRUE)
+tlc_within_dat_impute_mean
+
+tlc_within_dat_impute_sd = unlist(tlc_within_dat_impute_sd)
+tlc_within_dat_impute_sd = matrix(tlc_within_dat_impute_sd, ncol = 20, byrow = TRUE)
+
+tlc_within_dat_impute_mean_sd = mi.meld(tlc_within_dat_impute_mean, tlc_within_dat_impute_sd)
+tlc_within_dat_impute_mean_sd
+
+### 
+
+```
+
+
+######################
+Between target
+######################
+```{r}
+
 ### Create difference scores
 out_diff_dat = list()
 for(i in 1:length(impute_dat_loop)){
