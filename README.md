@@ -137,12 +137,28 @@ SIS_2_diff = SIS_d_2_average-SIS_b_2_average
 PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
 
 #### Create new data with average scores
-apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
-tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(2,4:8, 99:104)], RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4, RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff)
+#apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
+tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(1,2,4:8, 99:104)], RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4, RAS_1_diff ,RAS_2_diff, RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff)
 
 head(tlc_data_analysis_average)
 
-tlc_data_analysis_average 
+tlc_data_analysis_average
+
+########## Invalid parts
+## Excluding .1's those without a treatment package assigned
+is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
+whole_number =  is.wholenumber(tlc_data_analysis_average$YouthID)
+tlc_data_analysis_average$whole_number = whole_number
+tlc_data_analysis_average = subset(tlc_data_analysis_average, whole_number == TRUE)
+dim(tlc_data_analysis_average)
+tlc_data_analysis_average$YouthID = NULL
+tlc_data_analysis_average$whole_number = NULL
+### Get rid of those with no treatment packages
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_analysis_average$no_treat_package = is.na(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_analysis_average = subset(tlc_data_analysis_average, no_treat_package == FALSE)
+dim(tlc_data_analysis_average)
+tlc_data_analysis_average$no_treat_package = NULL
 
 ```
 Evaluate missing data
@@ -156,15 +172,16 @@ library(naniar)
 dim(tlc_data_analysis_average)
 var_missing =  miss_var_summary(tlc_data_analysis_average)
 var_missing = data.frame(var_missing)
-var_missing
 write.csv(var_missing, "var_missing.csv", row.names = FALSE)
+#write.csv(var_missing, "var_missing.csv", row.names = FALSE)
 full_n = dim(tlc_data_analysis_average)[1]
 ############## Getting rid of anybody who doesn't have a follow-up
-quasi_itt =  apply(tlc_data_analysis_average[,33:42], 1, mean, na.rm = TRUE)
-quasi_itt = ifelse(is.na(quasi_itt), 0, 1)
-
-quasi_itt_dat = data.frame(tlc_data_analysis_average, quasi_itt)
-quasi_itt_dat = subset(quasi_itt_dat, any_dis == 1)
+quasi_itt =  apply(tlc_data_analysis_average[,33:42], 1, function(x)(sum(is.na(x))))
+quasi_itt_dat = data.frame(tlc_data_analysis_average,quasi_itt)
+### Ten variables and threshold is less than 70% 
+quasi_itt_dat = subset(quasi_itt_dat, quasi_itt < 8)
+quasi_itt_dat$quasi_itt = NULL
+dim(quasi_itt_dat)
 quasi_itt_n = dim(quasi_itt_dat)[1]
 ### Percentage of drop for quasi itt
 quasi_itt_drop_out_rate = 1-(dim(quasi_itt_dat)[1]/dim(tlc_data_analysis_average)[1])
@@ -178,6 +195,7 @@ quasi_tot_drop_out_rate = 1-(dim(quasi_tot_dat)[1]/dim(tlc_data_analysis_average
 
 
 ### No psychotherapy or phq-9 still reject
+quasi_tot_dat =  quasi_itt_dat 
 no_phq9_psycho_dat = quasi_tot_dat
 no_phq9_psycho_dat$PHQ9_b = NULL
 no_phq9_psycho_dat$PHQ9_d = NULL
@@ -187,12 +205,14 @@ no_phq9_psycho_dat_complete = na.omit(no_phq9_psycho_dat)
 quasi_tot_no_phq9_psycho_n = dim(no_phq9_psycho_dat_complete)[1]
 quasi_tot_no_phq9_psycho_n
 
+### Put together all results
 missing_results = data.frame(full_n, quasi_itt_n, quasi_tot_n, quasi_itt_drop_out_rate, quasi_tot_drop_out_rate, quasi_tot_no_phq9_psycho_n)
 missing_results = round(missing_results, 3)
 missing_results = t(missing_results)
 colnames(missing_results)= "n_percent"
 #### Add a column with explainations for each of them
-
+explain = c("Total number of participants. Anyone who assigned an ID is included that was not .1. Excluded if not assigned a treatment", "Total number of participants who completed at least 70% of a discharge. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 70% of discharge.", "Percentage of missing data.", "N for complete data without PHQ-9 or Psychotherapy.")
+missing_results = data.frame(missing_results, explain)
 
 write.csv(missing_results, "missing_results.csv")
 
@@ -296,21 +316,22 @@ outcomes_b_t1 = tlc_complete_t1[13:22]
 outcomes_d_t1 = tlc_complete_t1[23:32]
 library(effsize)
 
+
 results_t1 = list()
 for(i in 1:length(outcomes_b_t1)){
   results_t1[[i]] = cohen.d(outcomes_d_t1[[i]],outcomes_b_t1[[i]], paired = TRUE)
-  results_t1[[i]] = results_t1[[i]][3:5]
+  results_t1[[i]] = results_t1[[i]][c(3,5)]
 }
 results_t1 = unlist(results_t1)
-results_t1 = matrix(results_t1, ncol= 4, byrow = TRUE)
-colnames(results_t1) = c("d", "sd", "lower", "upper")
+results_t1 = matrix(results_t1, ncol= 3, byrow = TRUE)
+colnames(results_t1) = c("d", "lower", "upper")
 results_t1 = data.frame(round(results_t1,3))
-results_t1$sig = ifelse(results_t1$lower < 0 & results_t1$upper > 0, "", "*")
-results_t1
+sig = ifelse(results_t1$lower < 0 & results_t1$upper > 0, "", "*")
+results_t1$d = paste0(results_t1$d, sig)
 
 ci_95 = paste0(results_t1$lower, sep = ",", results_t1$upper)
 results_t1 = data.frame(results_t1, ci_95)
-results_t1 = results_t1[,-c(3:4)]
+results_t1 = data.frame(d = results_t1$d, ci_95 = results_t1$ci_95)
 results_t1
 
 
@@ -323,18 +344,18 @@ library(effsize)
 results_t2 = list()
 for(i in 1:length(outcomes_b_t2)){
   results_t2[[i]] = cohen.d(outcomes_d_t2[[i]],outcomes_b_t2[[i]], paired = TRUE)
-  results_t2[[i]] = results_t2[[i]][3:5]
+  results_t2[[i]] = results_t2[[i]][c(3,5)]
 }
 results_t2 = unlist(results_t2)
-results_t2 = matrix(results_t2, ncol= 4, byrow = TRUE)
-colnames(results_t2) = c("d", "sd", "lower", "upper")
+results_t2 = matrix(results_t2, ncol= 3, byrow = TRUE)
+colnames(results_t2) = c("d", "lower", "upper")
 results_t2 = data.frame(round(results_t2,3))
-results_t2$sig = ifelse(results_t2$lower < 0 & results_t2$upper > 0, "", "*")
-results_t2
+sig = ifelse(results_t2$lower < 0 & results_t2$upper > 0, "", "*")
+results_t2$d = paste0(results_t2$d, sig)
 
 ci_95 = paste0(results_t2$lower, sep = ",", results_t2$upper)
 results_t2 = data.frame(results_t2, ci_95)
-results_t2 = results_t2[,-c(3:4)]
+results_t2 = data.frame(d = results_t2$d, ci_95 = results_t2$ci_95)
 results_t2
 
 ####### Phone + text + face to face
@@ -346,19 +367,20 @@ library(effsize)
 results_t3 = list()
 for(i in 1:length(outcomes_b_t3)){
   results_t3[[i]] = cohen.d(outcomes_d_t3[[i]],outcomes_b_t3[[i]], paired = TRUE)
-  results_t3[[i]] = results_t3[[i]][3:5]
+  results_t3[[i]] = results_t3[[i]][c(3,5)]
 }
 results_t3 = unlist(results_t3)
-results_t3 = matrix(results_t3, ncol= 4, byrow = TRUE)
-colnames(results_t3) = c("d", "sd", "lower", "upper")
+results_t3 = matrix(results_t3, ncol= 3, byrow = TRUE)
+colnames(results_t3) = c("d", "lower", "upper")
 results_t3 = data.frame(round(results_t3,3))
-results_t3$sig = ifelse(results_t3$lower < 0 & results_t3$upper > 0, "", "*")
-results_t3
+sig = ifelse(results_t3$lower < 0 & results_t3$upper > 0, "", "*")
+results_t3$d = paste0(results_t3$d, sig)
 
 ci_95 = paste0(results_t3$lower, sep = ",", results_t3$upper)
 results_t3 = data.frame(results_t3, ci_95)
-results_t3 = results_t3[,-c(3:4)]
+results_t3 = data.frame(d = results_t3$d, ci_95 = results_t3$ci_95)
 results_t3
+
 
 ########### Combine all results
 within_results_target = rbind(results_t1, results_t2, results_t3)
@@ -392,9 +414,6 @@ t = list()
 t_sum = list()
 t_conf = list()
 
-test_r = rlm(tlc_complete$RAS_1_diff ~ TXPackageAssigned, data = tlc_complete)
-summary(test_r)
-confint(test_r)
 for(i in 1:length(outcomes_freq)){
   outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
   outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
@@ -450,21 +469,21 @@ ci_lower = rbind(ci_1_lower, ci_2_lower)
 ci_upper_lower = round(data.frame(ci_lower, ci_upper),3)
 
 sig_target_between = ifelse(ci_upper_lower$lower < 0 & ci_upper_lower$upper > 0, "", "*")
-
+ests_ses$estimate = paste0(ests_ses$estimate,sig_target_between)
 
 
 ci_target_between = paste0(ci_upper_lower$lower, sep = ",", ci_upper_lower$upper)
 
 
 var_names_between = rep(names(outcomes_freq), 2)
-between_target_results = data.frame(var_names_between, ests_ses, ci_target_between, sig_target_between)
+between_target_results = data.frame(var_names_between, ests_ses, ci_target_between)
 between_target_results
 
 write.csv(between_target_results, "between_target_results.csv", row.names = FALSE)
 
 t_sum
 t_conf
-
+outcomes_freq_stand
 ```
 ###########################
 SIS outcomes associated with it
@@ -473,6 +492,8 @@ SIS outcomes associated with it
 outcomes_freq
 corr.test(outcomes_freq)
 
+
+####### Suicide idea 
 suicide_idea_model_0 = lm(SIS_1_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
 vif(suicide_idea_model_0)
 suicide_idea_model_sum_0 = summary(suicide_idea_model_0)
@@ -480,8 +501,9 @@ suicide_idea_model_sum_0
 round(suicide_idea_model_sum_0$coefficients,3)
 
 suicide_idea_model_1 = lm(SIS_1_diff ~ RAS_1_diff  + RAS_3_diff + INQ_1_diff + INQ_2_diff  + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
-summary(suicide_idea_model_1)
-
+suicide_idea_model_1_sum = summary(suicide_idea_model_1)
+suicide_idea_model_1_sum = round(suicide_idea_model_1_sum$coefficients,3)
+write.csv(suicide_idea_model_1_sum, "suicide_idea_model_1_sum.csv")
 
 checK_assump = gvlma(suicide_idea_model)
 checK_assump
@@ -490,7 +512,217 @@ plot.gvlma(checK_assump)
 library(car)
 checkresiduals(suicide_idea_model)
 
+### Second factor
+resolved_model_0 = lm(SIS_2_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff + SIS_1_diff , data = outcomes_freq_stand)
+vif(resolved_model_0)
+resolved_model_sum_0 = summary(resolved_model_0)
+resolved_model_sum_0
+resolved_model_sum_0 = round(resolved_model_sum_0$coefficients,3)
+write.csv(resolved_model_sum_0, "resolved_model_sum_0.csv")
 
+
+resolved_model_1 = lm(SIS_2_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff , data = outcomes_freq_stand)
+summary(resolved_model_1)
+
+checK_assump = gvlma(resolved_model_0)
+checK_assump
+par(mar=c(1,1,1,1))
+plot.gvlma(checK_assump)
+library(car)
+checkresiduals(resolved_model)
+
+
+```
+###########################
+Imputted results
+###########################
+
+######################
+Within target results
+######################
+
+######################
+Between target
+######################
+```{r}
+library(Amelia)
+impute_dat = quasi_itt_dat
+dim(impute_dat)
+describe.factor(impute_dat$TXPackageAssigned)
+### Try coding as binary for everything besies treatment package
+##
+impute_dat$female = ifelse(impute_dat$Gender == 2, 1, 0)
+impute_dat$Gender = NULL
+impute_dat$non_white = ifelse(impute_dat$RaceEthnicity == 3,0,1)
+impute_dat$RaceEthnicity = NULL
+impute_dat$sexual_minority = ifelse(impute_dat$SexualOrientation == 5,0,1)
+impute_dat$SexualOrientation = NULL
+
+impute_dat[,30:39] = NULL
+
+a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority", "CurrentlyEngaged", "Attend75Referrals", "CrisisPlan80Time"), logs = c("ReferralsEngaged", "ReferralsProvided", "HoursPsychotherapy"))
+compare.density(a.out, var = "non_white")
+summary(a.out)
+disperse(a.out)
+
+impute_dat_loop = a.out$imputations
+### Create difference scores
+out_diff_dat = list()
+for(i in 1:length(impute_dat_loop)){
+  out_diff_dat[[i]] = impute_dat_loop[[i]][20:29]-impute_dat_loop[[i]][10:19]
+  colnames(out_diff_dat[[i]]) = c("RAS_1_diff", "RAS_2_diff", "RAS_3_diff", "RAS_5_diff", "INQ_1_diff", "INQ_2_diff", "SSMI_diff", "SIS_1_diff", "SIS_2_diff", "PHQ9_diff")
+  out_diff_dat[[i]] = scale(out_diff_dat[[i]])
+  out_diff_dat[[i]] =cbind(impute_dat_loop[[i]], out_diff_dat[[i]])
+}
+out_diff_dat
+impute_target_between_results = list()
+impute_target_between_results_sum = list()
+se_con = list()
+t = list()
+for(i in 1:length(out_diff_dat)){
+  impute_target_between_results[[i]]=lm(cbind(RAS_1_diff, RAS_2_diff,RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff) ~ factor(TXPackageAssigned), data = out_diff_dat[[i]])
+}
+
+impute_target_between_results_1 = summary(impute_target_between_results[[1]])
+impute_target_between_results_2 = summary(impute_target_between_results[[2]])
+impute_target_between_results_3 = summary(impute_target_between_results[[3]])
+impute_target_between_results_4 = summary(impute_target_between_results[[4]])
+impute_target_between_results_5 = summary(impute_target_between_results[[5]])
+
+
+coefs_1 = list()
+ses_1 = list()
+for(i in 1:length(impute_target_between_results_1)){
+  coefs_1[[i]] = impute_target_between_results_1[[i]]$coefficients[2:3,1]
+  ses_1[[i]] = impute_target_between_results_1[[i]]$coefficients[2:3,2]
+}
+coefs_1
+coefs_1 = unlist(coefs_1)
+coefs_1 = matrix(coefs_1, ncol = 20)
+coefs_1
+
+ses_1
+ses_1 = unlist(ses_1)
+ses_1 = matrix(ses_1, ncol = 20)
+ses_1
+
+
+coefs_2 = list()
+ses_2 = list()
+for(i in 1:length(impute_target_between_results_2)){
+  coefs_2[[i]] = impute_target_between_results_2[[i]]$coefficients[2:3,1]
+  ses_2[[i]] = impute_target_between_results_2[[i]]$coefficients[2:3,2]
+}
+coefs_2
+coefs_2 = unlist(coefs_2)
+coefs_2 = matrix(coefs_2, ncol = 20)
+coefs_2
+
+ses_2
+ses_2 = unlist(ses_2)
+ses_2 = matrix(ses_2, ncol = 20)
+ses_2
+
+coefs_3 = list()
+ses_3 = list()
+for(i in 1:length(impute_target_between_results_3)){
+  coefs_3[[i]] = impute_target_between_results_3[[i]]$coefficients[2:3,1]
+  ses_3[[i]] = impute_target_between_results_3[[i]]$coefficients[2:3,2]
+}
+coefs_3
+coefs_3 = unlist(coefs_3)
+coefs_3 = matrix(coefs_3, ncol = 20)
+coefs_3
+
+ses_3
+ses_3 = unlist(ses_3)
+ses_3 = matrix(ses_3, ncol = 20)
+ses_3
+
+coefs_4 = list()
+ses_4 = list()
+for(i in 1:length(impute_target_between_results_4)){
+  coefs_4[[i]] = impute_target_between_results_4[[i]]$coefficients[2:3,1]
+  ses_4[[i]] = impute_target_between_results_4[[i]]$coefficients[2:3,2]
+}
+coefs_4
+coefs_4 = unlist(coefs_4)
+coefs_4 = matrix(coefs_4, ncol = 20)
+coefs_4
+
+ses_4
+ses_4 = unlist(ses_4)
+ses_4 = matrix(ses_4, ncol = 20)
+ses_4
+
+coefs_5 = list()
+ses_5 = list()
+for(i in 1:length(impute_target_between_results_5)){
+  coefs_5[[i]] = impute_target_between_results_5[[i]]$coefficients[2:3,1]
+  ses_5[[i]] = impute_target_between_results_5[[i]]$coefficients[2:3,2]
+}
+coefs_5
+coefs_5 = unlist(coefs_5)
+coefs_5 = matrix(coefs_5, ncol = 20)
+coefs_5
+
+ses_5
+ses_5 = unlist(ses_5)
+ses_5 = matrix(ses_5, ncol = 20)
+ses_5
+
+coefs_all = rbind(coefs_1, coefs_2, coefs_3, coefs_4, coefs_5)
+ses_all = rbind(ses_1, ses_2, ses_3, ses_4, ses_5)
+coefs_ses =  mi.meld(coefs_all,ses_all)
+t_stats = coefs_ses$q.mi / coefs_ses$se.mi
+# n = 206 minus 5 for parameters
+p_values = round(2*pt(-abs(t_stats), df = 199),3)
+#Critica t
+critical_ts= abs(qt(0.05/2, 199))
+critical_ts
+upper = round(coefs_ses$q.mi+(critical_ts*coefs_ses$se.mi),3)
+lower = round(coefs_ses$q.mi-(critical_ts*coefs_ses$se.mi),3)
+ci_95 = paste0(lower, sep=",", upper)
+
+tlc_between_impute_results = data.frame(t(coefs_ses$q.mi), t(coefs_ses$se.mi), t(p_values), ci_95)
+colnames(tlc_between_impute_results) = c("parameter_estimate", "se", "p_value", "ci_95")
+tlc_between_impute_results[,1:2] = round(tlc_between_impute_results[,1:2], 3)
+tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .05, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
+tlc_between_impute_results
+
+#### Get contrasts
+phone_text_par = tlc_between_impute_results$parameter_estimate[seq(from = 1, to = 20, by = 2)]
+phone_text_se = tlc_between_impute_results$se[seq(from = 1, to = 20, by = 2)]
+
+phone_text_face_par = tlc_between_impute_results$parameter_estimate[seq(from = 2, to = 20, by = 2)] 
+phone_text_face_se = tlc_between_impute_results$se[seq(from = 2, to = 20, by = 2)] 
+
+### Clogg 1995: z = (b1-b2)/sqrt((se1^2+se2^2))
+par_diff = (phone_text_par-phone_text_face_par)
+se = sqrt(phone_text_se^2+phone_text_face_se^2)
+z_con = par_diff/se
+p_value_con = round(2*pnorm(-abs(z_con)),3)
+upper_con = par_diff+1.96*se
+lower_con = par_diff-1.96*se
+
+tlc_bewteen_impute_results_con = round(data.frame(parameter_estimate = par_diff, se = se, p_value = p_value_con, upper_con, lower_con),3)
+tlc_bewteen_impute_results_con$ci_95 = paste0(tlc_bewteen_impute_results_con$lower_con, sep = ",", tlc_bewteen_impute_results_con$upper_con)
+tlc_bewteen_impute_results_con[,4:5] = NULL
+tlc_bewteen_impute_results_con
+
+```
+Look into the differences between the two data sets
+```{r}
+### Check out differences in means between the two
+describe(impute_dat_test)
+library(prettyR)
+impute_dat_test = data.frame(impute_dat_test)
+describe.factor(impute_dat_test$TXPackageAssigned, impute_dat_test$RAS_1_diff)
+impute_dat_test
+
+write.csv(impute_dat_test, "impute_dat_test.csv", row.names = FALSE)
+
+write.csv(outcomes_freq_stand, "outcomes_freq_stand.csv", row.names = FALSE)
 ```
 
 
@@ -500,7 +732,7 @@ Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes 
 
 •	What program/contextual factors are associated with which outcomes?
 ```{r}
-
+describe(outcomes_freq_stand)
 tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
 cor(tlc_complete_t1[,7:12])
 outcomes_t1 = tlc_complete_t1[,13:22]
