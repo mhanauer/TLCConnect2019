@@ -569,29 +569,103 @@ Phone only
 Get means and sds then meld together so you don't have to deal with it, then you can calcaulate cohen's d by hand for all of them.
 ```{r}
 ### Subset the data for just the variables that you want
-tlc_within_dat_impute = list()
-tlc_within_dat_impute_mean = list()
-tlc_within_dat_impute_sd = list()
-tlc_results_within_impute_t1 = list()
-for(i in 1:length(impute_dat_loop)){
-  tlc_within_dat_impute[[i]] = impute_dat_loop[[i]][10:29]
-  tlc_within_dat_impute_mean[[i]] = apply(tlc_within_dat_impute[[i]], 2, mean)
-  tlc_within_dat_impute_sd[[i]] = apply(tlc_within_dat_impute[[i]], 2, sd)
+tlc_within_d1_base = impute_dat_loop[[1]][10:19]
+tlc_within_d1_dis = impute_dat_loop[[1]][20:29]
+tlc_within_d2_base = impute_dat_loop[[2]][10:19]
+tlc_within_d2_dis = impute_dat_loop[[2]][20:29]
+tlc_within_d3_base = impute_dat_loop[[3]][10:19]
+tlc_within_d3_dis = impute_dat_loop[[3]][20:29]
+tlc_within_d4_base = impute_dat_loop[[4]][10:19]
+tlc_within_d4_dis = impute_dat_loop[[4]][20:29]
+tlc_within_d5_base = impute_dat_loop[[5]][10:19]
+tlc_within_d5_dis = impute_dat_loop[[5]][20:29]
+
+tlc_within_results_d1 = list()
+for(i in 1:length(tlc_within_d1_base)){
+  tlc_within_results_d1[[i]] = cohen.d(tlc_within_d1_dis[[i]], tlc_within_d1_base[[i]], paired = TRUE)
+  tlc_within_results_d1[[i]] = tlc_within_results_d1[[i]][c(3,5)]
 }
-tlc_within_dat_impute_mean
-tlc_within_dat_impute_mean = unlist(tlc_within_dat_impute_mean)
-length(tlc_within_dat_impute_mean)
-tlc_within_dat_impute_mean = matrix(tlc_within_dat_impute_mean, ncol = 20, byrow = TRUE)
-tlc_within_dat_impute_mean
 
-tlc_within_dat_impute_sd = unlist(tlc_within_dat_impute_sd)
-tlc_within_dat_impute_sd = matrix(tlc_within_dat_impute_sd, ncol = 20, byrow = TRUE)
+tlc_within_results_d2 = list()
+for(i in 1:length(tlc_within_d2_base)){
+  tlc_within_results_d2[[i]] = cohen.d(tlc_within_d2_dis[[i]], tlc_within_d2_base[[i]], paired = TRUE)
+  tlc_within_results_d2[[i]] = tlc_within_results_d2[[i]][c(3,5)]
+}
 
-tlc_within_dat_impute_mean_sd = mi.meld(tlc_within_dat_impute_mean, tlc_within_dat_impute_sd)
-tlc_within_dat_impute_mean_sd
+tlc_within_results_d3 = list()
+for(i in 1:length(tlc_within_d3_base)){
+  tlc_within_results_d3[[i]] = cohen.d(tlc_within_d3_dis[[i]], tlc_within_d3_base[[i]], paired = TRUE)
+  tlc_within_results_d3[[i]] = tlc_within_results_d3[[i]][c(3,5)]
+}
 
-### 
+tlc_within_results_d4 = list()
+for(i in 1:length(tlc_within_d4_base)){
+  tlc_within_results_d4[[i]] = cohen.d(tlc_within_d4_dis[[i]], tlc_within_d4_base[[i]], paired = TRUE)
+  tlc_within_results_d4[[i]] = tlc_within_results_d4[[i]][c(3,5)]
+}
 
+tlc_within_results_d5 = list()
+for(i in 1:length(tlc_within_d5_base)){
+  tlc_within_results_d5[[i]] = cohen.d(tlc_within_d5_dis[[i]], tlc_within_d5_base[[i]], paired = TRUE)
+  tlc_within_results_d5[[i]] = tlc_within_results_d5[[i]][c(3,5)]
+}
+
+
+#### Now just average the means and ci's
+tlc_within_results_d1 =  unlist(tlc_within_results_d1)
+tlc_within_results_d1 = matrix(tlc_within_results_d1, ncol = 3, byrow = TRUE)
+tlc_within_results_d1 = data.frame(tlc_within_results_d1)
+tlc_within_results_d1 = round(tlc_within_results_d1, 3)
+colnames(tlc_within_results_d1) = c("cohen_d", "lower", "upper")
+tlc_within_results_d1
+
+tlc_within_results_d2 =  unlist(tlc_within_results_d2)
+tlc_within_results_d2 = matrix(tlc_within_results_d2, ncol = 3, byrow = TRUE)
+tlc_within_results_d2 = data.frame(tlc_within_results_d2)
+tlc_within_results_d2 = round(tlc_within_results_d2, 3)
+colnames(tlc_within_results_d2) = c("cohen_d", "lower", "upper")
+tlc_within_results_d2
+
+tlc_within_results_d3 =  unlist(tlc_within_results_d3)
+tlc_within_results_d3 = matrix(tlc_within_results_d3, ncol = 3, byrow = TRUE)
+tlc_within_results_d3 = data.frame(tlc_within_results_d3)
+tlc_within_results_d3 = round(tlc_within_results_d3, 3)
+colnames(tlc_within_results_d3) = c("cohen_d", "lower", "upper")
+tlc_within_results_d3
+
+tlc_within_results_d4 =  unlist(tlc_within_results_d4)
+tlc_within_results_d4 = matrix(tlc_within_results_d4, ncol = 3, byrow = TRUE)
+tlc_within_results_d4 = data.frame(tlc_within_results_d4)
+tlc_within_results_d4 = round(tlc_within_results_d4, 3)
+colnames(tlc_within_results_d4) = c("cohen_d", "lower", "upper")
+tlc_within_results_d4
+
+tlc_within_results_d5 =  unlist(tlc_within_results_d5)
+tlc_within_results_d5 = matrix(tlc_within_results_d5, ncol = 3, byrow = TRUE)
+tlc_within_results_d5 = data.frame(tlc_within_results_d5)
+tlc_within_results_d5 = round(tlc_within_results_d5, 3)
+colnames(tlc_within_results_d5) = c("cohen_d", "lower", "upper")
+tlc_within_results_d5
+
+### Create a seperate data set cohen_d, lower, and upper then combine then rowMeans for the means
+tlc_within_cohen_d = data.frame(cohen_d1 = tlc_within_results_d1$cohen_d, cohe_d2 = tlc_within_results_d2$cohen_d, cohen_d3 = tlc_within_results_d3$cohen_d, cohen_d4 = tlc_within_results_d4$cohen_d,cohen_d5 = tlc_within_results_d5$cohen_d)
+tlc_within_cohen_d
+tlc_within_cohen_d = rowMeans(tlc_within_cohen_d)
+tlc_within_cohen_d
+
+tlc_within_lower = data.frame(lower1 = tlc_within_results_d1$lower, cohe_d2 = tlc_within_results_d2$lower, lower3 = tlc_within_results_d3$lower, lower4 = tlc_within_results_d4$lower,lower5 = tlc_within_results_d5$lower)
+tlc_within_lower = rowMeans(tlc_within_lower)
+
+tlc_within_upper = data.frame(upper1 = tlc_within_results_d1$upper, cohe_d2 = tlc_within_results_d2$upper, upper3 = tlc_within_results_d3$upper, upper4 = tlc_within_results_d4$upper,upper5 = tlc_within_results_d5$upper)
+tlc_within_upper = rowMeans(tlc_within_upper)
+
+tlc_within_results = data.frame(cohen_d = tlc_within_cohen_d, lower = tlc_within_lower, upper = tlc_within_upper)
+tlc_within_results = round(tlc_within_results, 3)
+tlc_within_results$cohen_d = ifelse(tlc_within_results$lower < 0 & tlc_within_results$upper > 0, "", paste0(tlc_within_results$cohen_d, "*"))
+
+tlc_within_results$ci_95 = paste0(tlc_within_results$lower, sep = ",", tlc_within_results$upper)
+tlc_within_results[,2:3] = NULL
+tlc_within_results
 ```
 
 
