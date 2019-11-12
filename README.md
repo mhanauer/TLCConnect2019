@@ -978,7 +978,31 @@ se_con_between = rbind(se_con_between_d1, se_con_between_d2, se_con_between_d3, 
 
 con_bewteen = mi.meld(mean_con_bewteen, se_con_between)
 con_bewteen
-critical_t = abs(qt(.05/2, dim()))
+
+con_between = mi.meld(mean_con_bewteen, se_con_between)
+con_between
+critical_t = abs(qt(0.05/2, dim(impute_dat_loop[[1]])[[1]]-5))
+est_con = data.frame(est_con  = con_between$q.mi)
+se_con = data.frame(se_con = con_between$se.mi)
+est_se_con = data.frame(est_con = t(est_con), se_con = t(se_con))
+t_stats = est_se_con$est_con / est_se_con$se_con
+est_se_con$p_values = round(2*pt(-abs(t_stats), df = dim(impute_dat_loop[[1]])[[1]]-5),3)
+est_se_con
+est_se_con = round(est_se_con,3)
+est_se_con
+#### 95% ci's
+upper = round(est_se_con$est_con +(critical_t*est_se_con$se_con),3)
+upper
+lower = round(est_se_con$est_con -(critical_t*est_se_con$se_con),3)
+lower
+ci_95 = paste0(upper, sep =",", lower)
+ci_95
+est_se_con$ci_95 = ci_95
+est_se_con
+est_se_con$est_con = ifelse(est_se_con$p_values < .05, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
+est_se_con$est_con
+est_se_con
+
 
 ### Check that first is correct
 test_tlc_con_dat = out_diff_dat[[1]]
