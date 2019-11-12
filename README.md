@@ -151,15 +151,27 @@ whole_number =  is.wholenumber(tlc_data_analysis_average$YouthID)
 tlc_data_analysis_average$whole_number = whole_number
 tlc_data_analysis_average = subset(tlc_data_analysis_average, whole_number == TRUE)
 dim(tlc_data_analysis_average)
-tlc_data_analysis_average$YouthID = NULL
 tlc_data_analysis_average$whole_number = NULL
-### Get rid of those with no treatment packages
-describe.factor(tlc_data_analysis_average$TXPackageAssigned)
-tlc_data_analysis_average$no_treat_package = is.na(tlc_data_analysis_average$TXPackageAssigned)
-tlc_data_analysis_average = subset(tlc_data_analysis_average, no_treat_package == FALSE)
-dim(tlc_data_analysis_average)
-tlc_data_analysis_average$no_treat_package = NULL
 
+### Find duplicate IDs
+dup_id = describe.factor(tlc_data_analysis_average$YouthID)
+dup_id = data.frame(dup_id)
+dup_id =  t(dup_id)
+dup_id = data.frame(id = rownames(dup_id), dup_id)
+dup_id = data.frame(id = dup_id$id, count = dup_id$Count)
+dup_id
+dup_id = subset(dup_id, count > 1)
+dup_id$id = gsub("\\D", "", dup_id$id)
+write.csv(dup_id, "dup_id.csv", row.names = FALSE)
+##### Identify which ones are missing treatments for Rachel
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_id_treat = tlc_data_analysis_average
+tlc_data_id_treat$no_treat = is.na(tlc_data_id_treat$TXPackageAssigned)
+tlc_data_id_treat = subset(tlc_data_id_treat, no_treat == TRUE)
+
+tlc_data_id_treat = data.frame(id = tlc_data_id_treat$YouthID, treat = tlc_data_id_treat$TXPackageAssigned)
+
+write.csv(tlc_data_id_treat ,"tlc_data_id_treat.csv", row.names = FALSE)
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -228,17 +240,17 @@ Who provided (program staff) what services (modality, type, intensity, duration)
 head(tlc_complete)
 ### 1
 dim(tlc_complete)
-describe.factor(tlc_complete$TXPackageAssigned)
-describe.factor(tlc_complete$Gender)
-describe.factor(tlc_complete$HispanicLatino)
-describe.factor(tlc_complete$RaceEthnicity)
-describe.factor(tlc_complete$SexualOrientation)
-describe.factor(tlc_complete$HoursPsychotherapy)
-mean(tlc_complete$HoursPsychotherapy)
-sd(tlc_complete$HoursPsychotherapy)
-describe.factor(tlc_complete$CurrentlyEngaged)
-mean(tlc_complete$ReferralsProvided)
-sd(tlc_complete$ReferralsProvided)
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
+describe.factor(tlc_data_analysis_average$Gender)
+describe.factor(tlc_data_analysis_average$HispanicLatino)
+describe.factor(tlc_data_analysis_average$RaceEthnicity)
+describe.factor(tlc_data_analysis_average$SexualOrientation)
+describe.factor(tlc_data_analysis_average$HoursPsychotherapy)
+mean(tlc_data_analysis_average$HoursPsychotherapy)
+sd(tlc_data_analysis_average$HoursPsychotherapy)
+describe.factor(tlc_data_analysis_average$CurrentlyEngaged)
+mean(tlc_data_analysis_average$ReferralsProvided)
+sd(tlc_data_analysis_average$ReferralsProvided)
 ### 3
 describe.factor(tlc_complete$CrisisPlan80Time)
 head(tlc_complete)
@@ -247,9 +259,9 @@ head(tlc_complete)
 (5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention
 (6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention
 ```{r}
-head(tlc_complete)
+head(tlc_data_analysis_average)
 library(psych)
-describe_results_base =  describe(tlc_complete[,13:22])
+describe_results_base =  describe(tlc_data_analysis_average[,13:22])
 describe_results_base = describe_results_base[,c(3,4,8,9)]
 describe_results_base = round(describe_results_base, 3)
 range_base = paste0(describe_results_base$min, sep = ",", describe_results_base$max)
@@ -261,7 +273,7 @@ describe_results_base
 write.csv(describe_results_base, "describe_results_base.csv", row.names = TRUE)
 
 #####################
-describe_results_discharge =  describe(tlc_complete[,23:32])
+describe_results_discharge =  describe(tlc_data_analysis_average[,23:32])
 describe_results_discharge = describe_results_discharge[,c(3,4,8,9)]
 describe_results_discharge = round(describe_results_discharge, 3)
 range_discharge = paste0(describe_results_discharge$min, sep = ",", describe_results_discharge$max)
@@ -299,192 +311,6 @@ for(i in 1:length(outcomes_tests)){
 shap_results
 ```
 
- •	What are the effects of the interventions on participants?
-
-Indiviudal treatment models
-Put together model for each of the outcomes.  Then run loop on the outcomes
-
-(4) self-stigma of mental illness, thwarted belongingness, and perceived burdensomeness will each decrease 30% among youth enrolled in enhanced post-crisis follow-up by the discharge assessment; and 
-(5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention, 
-(6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention. 
-
-```{r}
-########## Phone only
-library(gvlma)
-tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned == 1)
-outcomes_b_t1 = tlc_complete_t1[13:22]
-outcomes_d_t1 = tlc_complete_t1[23:32]
-library(effsize)
-
-
-results_t1 = list()
-for(i in 1:length(outcomes_b_t1)){
-  results_t1[[i]] = cohen.d(outcomes_d_t1[[i]],outcomes_b_t1[[i]], paired = TRUE)
-  results_t1[[i]] = results_t1[[i]][c(3,5)]
-}
-results_t1 = unlist(results_t1)
-results_t1 = matrix(results_t1, ncol= 3, byrow = TRUE)
-colnames(results_t1) = c("d", "lower", "upper")
-results_t1 = data.frame(round(results_t1,3))
-sig = ifelse(results_t1$lower < 0 & results_t1$upper > 0, "", "*")
-results_t1$d = paste0(results_t1$d, sig)
-
-ci_95 = paste0(results_t1$lower, sep = ",", results_t1$upper)
-results_t1 = data.frame(results_t1, ci_95)
-results_t1 = data.frame(d = results_t1$d, ci_95 = results_t1$ci_95)
-results_t1
-
-
-########## Phone + Text
-tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned == 2)
-outcomes_b_t2 = tlc_complete_t2[13:22]
-outcomes_d_t2 = tlc_complete_t2[23:32]
-library(effsize)
-
-results_t2 = list()
-for(i in 1:length(outcomes_b_t2)){
-  results_t2[[i]] = cohen.d(outcomes_d_t2[[i]],outcomes_b_t2[[i]], paired = TRUE)
-  results_t2[[i]] = results_t2[[i]][c(3,5)]
-}
-results_t2 = unlist(results_t2)
-results_t2 = matrix(results_t2, ncol= 3, byrow = TRUE)
-colnames(results_t2) = c("d", "lower", "upper")
-results_t2 = data.frame(round(results_t2,3))
-sig = ifelse(results_t2$lower < 0 & results_t2$upper > 0, "", "*")
-results_t2$d = paste0(results_t2$d, sig)
-
-ci_95 = paste0(results_t2$lower, sep = ",", results_t2$upper)
-results_t2 = data.frame(results_t2, ci_95)
-results_t2 = data.frame(d = results_t2$d, ci_95 = results_t2$ci_95)
-results_t2
-
-####### Phone + text + face to face
-tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned == 3)
-outcomes_b_t3 = tlc_complete_t3[13:22]
-outcomes_d_t3 = tlc_complete_t3[23:32]
-library(effsize)
-
-results_t3 = list()
-for(i in 1:length(outcomes_b_t3)){
-  results_t3[[i]] = cohen.d(outcomes_d_t3[[i]],outcomes_b_t3[[i]], paired = TRUE)
-  results_t3[[i]] = results_t3[[i]][c(3,5)]
-}
-results_t3 = unlist(results_t3)
-results_t3 = matrix(results_t3, ncol= 3, byrow = TRUE)
-colnames(results_t3) = c("d", "lower", "upper")
-results_t3 = data.frame(round(results_t3,3))
-sig = ifelse(results_t3$lower < 0 & results_t3$upper > 0, "", "*")
-results_t3$d = paste0(results_t3$d, sig)
-
-ci_95 = paste0(results_t3$lower, sep = ",", results_t3$upper)
-results_t3 = data.frame(results_t3, ci_95)
-results_t3 = data.frame(d = results_t3$d, ci_95 = results_t3$ci_95)
-results_t3
-
-
-########### Combine all results
-within_results_target = rbind(results_t1, results_t2, results_t3)
-var_names = rep(names(outcomes_d_t3), 3)
-within_results_target = data.frame(var_names, within_results_target) 
-within_results_target
-
-write.csv(within_results_target, "within_results_target.csv", row.names = FALSE)
-```
-
-Now comparison models for each 
-Need to figure out how to grab the effects and compare them
-Contrasts are asking whether t3-t2
-
-•	Does the effect vary by mode of intervention (i.e., phone, phone and caring texts, phone and face-to-face contacts)
-
-(8) Youth’s outcomes will not vary by mode of treatment (i.e., phone, phone & face-to-face, phone & caring texts). 
-```{r}
-### standardized
-### Try linear regression version and see if contrasts are similar
-library(multcomp)
-### Try linear regression version and see if contrasts are similar
-outcomes_freq = tlc_complete[,33:42]
-outcomes_freq_stand = data.frame(apply(outcomes_freq, 2, function(x){scale(x)}))
-outcomes_freq_results = list()
-outcomes_freq_sum = list()
-outcomes_freq_con = list()
-outcomes_freq_results_conf = list()
-outcomes_freq_results_check = list()
-t = list()
-t_sum = list()
-t_conf = list()
-
-for(i in 1:length(outcomes_freq)){
-  outcomes_freq_results[[i]] = lm(outcomes_freq_stand[[i]] ~   factor(TXPackageAssigned), data = tlc_complete)
-  outcomes_freq_sum[[i]] = summary(outcomes_freq_results[[i]])
-  outcomes_freq_sum[[i]] = outcomes_freq_sum[[i]][[4]][2:3,1:2]
-  outcomes_freq_results_conf[[i]] = confint(outcomes_freq_results[[i]])
-  outcomes_freq_results_conf[[i]] = outcomes_freq_results_conf[[i]][2:3,]
-  outcomes_freq_results_check[[i]] = gvlma(outcomes_freq_results[[i]])
-  K = matrix(c(0, 1,-1), ncol = 3, nrow = 1, byrow = TRUE)
-  t[[i]] = glht(outcomes_freq_results[[i]], linfct = K)
-  t_sum[[i]] = summary(t[[i]])
-  t_conf[[i]] = confint(t[[i]])
-}
-### For outcomes
-outcomes_freq_sum
-outcomes_freq_sum = unlist(outcomes_freq_sum)
-write.csv(outcomes_freq_sum, "outcomes_freq_sum.csv", row.names = FALSE)
-outcomes_freq_sum = read.csv("outcomes_freq_sum.csv", header = TRUE)
-outcomes_freq_sum
-outcomes_freq_sum = matrix(outcomes_freq_sum$x, ncol = 4, byrow = TRUE)
-outcomes_freq_sum = data.frame(estimate_1 = outcomes_freq_sum[,1], se_1 = outcomes_freq_sum[,3], estimate_2 = outcomes_freq_sum[,2], se_2 = outcomes_freq_sum[,4])
-
-est1 = data.frame(estimate = outcomes_freq_sum$estimate_1)
-est2 = data.frame(estimate = outcomes_freq_sum$estimate_2)
-ests = rbind(est1, est2)
-ests
-
-se1 = data.frame(se = outcomes_freq_sum$se_1)
-se2 = data.frame(se = outcomes_freq_sum$se_2)
-ses = rbind(se1, se2)
-ses
-
-ests_ses = round(data.frame(ests, ses),3)
-ests_ses
-### Now for ci of outcomes
-outcomes_freq_results_conf
-outcomes_freq_results_conf = unlist(outcomes_freq_results_conf)
-write.csv(outcomes_freq_results_conf, "outcomes_freq_results_conf_stand.csv", row.names = FALSE)
-outcomes_freq_results_conf = read.csv("outcomes_freq_results_conf_stand.csv", header = TRUE)
-outcomes_freq_results_conf
-outcomes_freq_results_conf = matrix(outcomes_freq_results_conf$x, ncol = 4, byrow = TRUE)
-outcomes_freq_results_conf = data.frame(outcomes_freq_results_conf)
-outcomes_freq_results_conf = data.frame(lower_1 = outcomes_freq_results_conf$X1, upper_1 = outcomes_freq_results_conf$X3, lower_2 = outcomes_freq_results_conf$X2, upper_2 = outcomes_freq_results_conf$X4)
-outcomes_freq_results_conf
-
-ci_1_upper = data.frame(upper = outcomes_freq_results_conf$upper_1)
-ci_2_upper = data.frame(upper = outcomes_freq_results_conf$upper_2)
-ci_upper = rbind(ci_1_upper, ci_2_upper)
-
-ci_1_lower = data.frame(lower = outcomes_freq_results_conf$lower_1)
-ci_2_lower = data.frame(lower = outcomes_freq_results_conf$lower_2)
-ci_lower = rbind(ci_1_lower, ci_2_lower)
-
-ci_upper_lower = round(data.frame(ci_lower, ci_upper),3)
-
-sig_target_between = ifelse(ci_upper_lower$lower < 0 & ci_upper_lower$upper > 0, "", "*")
-ests_ses$estimate = paste0(ests_ses$estimate,sig_target_between)
-
-
-ci_target_between = paste0(ci_upper_lower$lower, sep = ",", ci_upper_lower$upper)
-
-
-var_names_between = rep(names(outcomes_freq), 2)
-between_target_results = data.frame(var_names_between, ests_ses, ci_target_between)
-between_target_results
-
-write.csv(between_target_results, "between_target_results.csv", row.names = FALSE)
-
-t_sum
-t_conf
-outcomes_freq_stand
-```
 ###########################
 SIS outcomes associated with it
 ##########################
