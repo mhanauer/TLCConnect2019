@@ -192,8 +192,8 @@ full_n = dim(tlc_data_analysis_average)[1]
 ############## Getting rid of anyone who doesn't have at 50% complete data
 quasi_itt =  apply(tlc_data_analysis_average, 1, function(x)(sum(is.na(x))))
 quasi_itt_dat = data.frame(tlc_data_analysis_average,quasi_itt)
-### Ten variables and threshold is less than 50% 
-quasi_itt_dat = subset(quasi_itt_dat, quasi_itt < 6)
+### Threshold is less than 50% 
+quasi_itt_dat = subset(quasi_itt_dat, quasi_itt < dim(quasi_itt_dat)[2]/2)
 quasi_itt_dat$quasi_itt = NULL
 dim(quasi_itt_dat)
 quasi_itt_n = dim(quasi_itt_dat)[1]
@@ -239,53 +239,58 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
-head(tlc_complete)
-### 1
-dim(tlc_complete)
-describe.factor(tlc_data_analysis_average$TXPackageAssigned)
-describe.factor(tlc_data_analysis_average$Gender)
-describe.factor(tlc_data_analysis_average$HispanicLatino)
-describe.factor(tlc_data_analysis_average$RaceEthnicity)
-describe.factor(tlc_data_analysis_average$SexualOrientation)
-describe.factor(tlc_data_analysis_average$HoursPsychotherapy)
-mean(tlc_data_analysis_average$HoursPsychotherapy)
-sd(tlc_data_analysis_average$HoursPsychotherapy)
-describe.factor(tlc_data_analysis_average$CurrentlyEngaged)
-mean(tlc_data_analysis_average$ReferralsProvided)
-sd(tlc_data_analysis_average$ReferralsProvided)
+head(tlc_data_analysis_average)
+### 1 put into an excel form
+dim(tlc_data_analysis_average)
+library(psych)
+con_vars  = tlc_data_analysis_average[,c(3,8,14:33)]
+con_vars_mean = apply(con_vars,2, mean, na.rm = TRUE)
+con_vars_sd = apply(con_vars, 2, sd, na.rm = TRUE)
+con_vars_range = apply(con_vars, 2, range, na.rm = TRUE)
+con_vars_range = t(con_vars_range)
+con_vars_range = data.frame(con_vars_range)
+con_vars_range = round(con_vars_range, 3)
+con_vars_range$range = paste0(con_vars_range$X1, sep = ",", con_vars_range$X2)
+con_vars_range = con_vars_range$range
+con_vars_range
+con_vars_results = data.frame(con_vars_mean, con_vars_sd, con_vars_range)
+con_vars_results[,1:2] = round(con_vars_results[,1:2],3)
+con_vars_results
+colnames(con_vars_results) = c("mean_count", "sd_percent", "range")
+con_vars_results
+##### Get cat vars
+head(tlc_data_analysis_average)
+cat_vars = tlc_data_analysis_average[,c(2,4:7,9:13)] 
+cat_vars = apply(cat_vars, 2, function(x){describe.factor(x)})
+cat_vars = data.frame(cat_vars)
+cat_vars = t(cat_vars)
+cat_vars = data.frame(cat_vars)
+cat_vars$Percent = round(cat_vars$Percent, 3)
+cat_vars
 ### 3
 describe.factor(tlc_complete$CrisisPlan80Time)
 head(tlc_complete)
+### Now percentage of missing for the count vars
+var_missing =  miss_var_summary(tlc_data_analysis_average)
+var_missing$pct_miss = round(var_missing$pct_miss, 3)
+write.csv(var_missing, "var_missing.csv")
 ```
 (4) self-stigma of mental illness, thwarted belongingness, and perceived burdensomeness will each decrease 30% among youth enrolled in enhanced post-crisis follow-up by the discharge assessment; and 
 (5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention
 (6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention
 ```{r}
 head(tlc_data_analysis_average)
-library(psych)
-describe_results_base =  describe(tlc_data_analysis_average[,14:23])
-describe_results_base = describe_results_base[,c(3,4,8,9)]
-describe_results_base = round(describe_results_base, 3)
-range_base = paste0(describe_results_base$min, sep = ",", describe_results_base$max)
-range_base = data.frame(range_base = range_base)
-describe_results_base = data.frame(describe_results_base,range_base)
-describe_results_base
-describe_results_base = describe_results_base[,-c(3:4)] 
-describe_results_base
-write.csv(describe_results_base, "describe_results_base.csv", row.names = TRUE)
+### Pre 
+pre_scores_tlc=  tlc_data_analysis_average[,14:23]
+post_scores_tlc = tlc_data_analysis_average[,24:33]
+post_scores_tlc = apply(post_scores_tlc, 2, mean, na.rm = TRUE)
+pre_scores_tlc = apply(pre_scores_tlc, 2, mean, na.rm =TRUE)
 
-#####################
-describe_results_discharge =  describe(tlc_data_analysis_average[,24:33])
-describe_results_discharge = describe_results_discharge[,c(3,4,8,9)]
-describe_results_discharge = round(describe_results_discharge, 3)
-range_discharge = paste0(describe_results_discharge$min, sep = ",", describe_results_discharge$max)
-range_discharge = data.frame(range_discharge = range_discharge)
-describe_results_discharge = data.frame(describe_results_discharge,range_discharge)
-describe_results_discharge
-describe_results_discharge = describe_results_discharge[,-c(3:4)] 
-describe_results_discharge
-write.csv(describe_results_discharge, "describe_results_discharge.csv", row.names = TRUE)
+p_change = (post_scores_tlc-pre_scores_tlc)/pre_scores_tlc
 
+p_change_results = data.frame(pre_scores_tlc, post_scores_tlc, p_change)
+p_change_results = round(p_change_results, 3)
+p_change_results
 ```
 (1)	a minimum of 5,660  youth will receive all components of the enhanced post-crisis follow-up intervention by the discharge survey 
 
@@ -293,9 +298,9 @@ referrals will be retained at least 50% of the time among youth enrolled in the 
 ```{r}
 dim(tlc_complete)
 
-tlc_complete$ReferralsEngaged_binary = ifelse(tlc_complete$ReferralsEngaged > 0,1,0)
-describe.factor(tlc_complete$ReferralsEngaged_binary)
-describe.factor(tlc_complete$Attend75Referrals)
+tlc_data_analysis_average$ReferralsEngaged_binary = ifelse(tlc_data_analysis_average$ReferralsEngaged > 0,1,0)
+describe.factor(tlc_data_analysis_average$ReferralsEngaged_binary)
+describe.factor(tlc_data_analysis_average$Attend75Referrals)
 ```
 
 
@@ -384,10 +389,9 @@ impute_dat[,5:10] = NULL
 
 
 a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
-compare.density(a.out, var = "non_white")
+compare.density(a.out, var = "SIS_d_2_average")
 summary(a.out)
 disperse(a.out)
-
 impute_dat_loop = a.out$imputations
 ```
 
@@ -400,14 +404,13 @@ Get means and sds then meld together so you don't have to deal with it, then you
 ```{r}
 #### Treatment 1
 tlc_within_d1_base_t1 = subset(impute_dat_loop[[1]][,c(2,5:14)], TXPackageAssigned == 1)
-
 tlc_within_d1_dis_t1 = subset(impute_dat_loop[[1]][,c(2,15:24)], TXPackageAssigned == 1)
 tlc_within_d1_base_t1$TXPackageAssigned = NULL
 tlc_within_d1_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t1 = list()
 for(i in 1:length(tlc_within_d1_base_t1)){
-  tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE)
+  tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d1_t1[[i]] = tlc_within_results_d1_t1[[i]][c(3,5)]
 }
 
@@ -427,7 +430,7 @@ tlc_within_d2_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t1 = list()
 for(i in 1:length(tlc_within_d2_base_t1)){
-  tlc_within_results_d2_t1[[i]] = cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE)
+  tlc_within_results_d2_t1[[i]] = cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d2_t1[[i]] = tlc_within_results_d2_t1[[i]][c(3,5)]
 }
 
@@ -447,7 +450,7 @@ tlc_within_d3_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t1 = list()
 for(i in 1:length(tlc_within_d3_base_t1)){
-  tlc_within_results_d3_t1[[i]] = cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE)
+  tlc_within_results_d3_t1[[i]] = cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d3_t1[[i]] = tlc_within_results_d3_t1[[i]][c(3,5)]
 }
 
@@ -467,7 +470,7 @@ tlc_within_d4_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t1 = list()
 for(i in 1:length(tlc_within_d4_base_t1)){
-  tlc_within_results_d4_t1[[i]] = cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE)
+  tlc_within_results_d4_t1[[i]] = cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d4_t1[[i]] = tlc_within_results_d4_t1[[i]][c(3,5)]
 }
 
@@ -488,7 +491,7 @@ tlc_within_d5_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t1 = list()
 for(i in 1:length(tlc_within_d5_base_t1)){
-  tlc_within_results_d5_t1[[i]] = cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE)
+  tlc_within_results_d5_t1[[i]] = cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d5_t1[[i]] = tlc_within_results_d5_t1[[i]][c(3,5)]
 }
 
@@ -515,6 +518,9 @@ tlc_within_t1_lower = rowMeans(tlc_within_t1_lower)
 tlc_within_t1_lower
 
 tlc_within_t1_results = data.frame(cohen_d = tlc_within_t1_cohen_d, upper = tlc_within_t1_upper, lower = tlc_within_t1_lower)
+tlc_within_t1_results = round(tlc_within_t1_results, 3)
+tlc_within_t1_results
+
 tlc_within_t1_results$cohen_d = ifelse(tlc_within_t1_results$upper > 0 & tlc_within_t1_results$lower < 0, tlc_within_t1_results$cohen_d, paste0(tlc_within_t1_results$cohen_d, "*"))
 tlc_within_t1_results$ci_95 = paste0(tlc_within_t1_results$lower, sep = ",", tlc_within_t1_results$upper)
 tlc_within_t1_results[,2:3] = NULL
@@ -528,7 +534,7 @@ tlc_within_d1_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t2 = list()
 for(i in 1:length(tlc_within_d1_base_t2)){
-  tlc_within_results_d1_t2[[i]] = cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE)
+  tlc_within_results_d1_t2[[i]] = cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d1_t2[[i]] = tlc_within_results_d1_t2[[i]][c(3,5)]
 }
 
@@ -548,7 +554,7 @@ tlc_within_d2_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t2 = list()
 for(i in 1:length(tlc_within_d2_base_t2)){
-  tlc_within_results_d2_t2[[i]] = cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE)
+  tlc_within_results_d2_t2[[i]] = cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d2_t2[[i]] = tlc_within_results_d2_t2[[i]][c(3,5)]
 }
 
@@ -568,7 +574,7 @@ tlc_within_d3_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t2 = list()
 for(i in 1:length(tlc_within_d3_base_t2)){
-  tlc_within_results_d3_t2[[i]] = cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE)
+  tlc_within_results_d3_t2[[i]] = cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d3_t2[[i]] = tlc_within_results_d3_t2[[i]][c(3,5)]
 }
 
@@ -588,7 +594,7 @@ tlc_within_d4_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t2 = list()
 for(i in 1:length(tlc_within_d4_base_t2)){
-  tlc_within_results_d4_t2[[i]] = cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE)
+  tlc_within_results_d4_t2[[i]] = cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d4_t2[[i]] = tlc_within_results_d4_t2[[i]][c(3,5)]
 }
 
@@ -609,7 +615,7 @@ tlc_within_d5_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t2 = list()
 for(i in 1:length(tlc_within_d5_base_t2)){
-  tlc_within_results_d5_t2[[i]] = cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE)
+  tlc_within_results_d5_t2[[i]] = cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d5_t2[[i]] = tlc_within_results_d5_t2[[i]][c(3,5)]
 }
 
@@ -636,6 +642,7 @@ tlc_within_t2_lower = rowMeans(tlc_within_t2_lower)
 tlc_within_t2_lower
 
 tlc_within_t2_results = data.frame(cohen_d = tlc_within_t2_cohen_d, upper = tlc_within_t2_upper, lower = tlc_within_t2_lower)
+tlc_within_t2_results = round(tlc_within_t2_results, 3)
 tlc_within_t2_results$cohen_d = ifelse(tlc_within_t2_results$upper > 0 & tlc_within_t2_results$lower < 0, tlc_within_t2_results$cohen_d, paste0(tlc_within_t2_results$cohen_d, "*"))
 tlc_within_t2_results$ci_95 = paste0(tlc_within_t2_results$lower, sep = ",", tlc_within_t2_results$upper)
 tlc_within_t2_results[,2:3] = NULL
@@ -649,7 +656,7 @@ tlc_within_d1_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t3 = list()
 for(i in 1:length(tlc_within_d1_base_t3)){
-  tlc_within_results_d1_t3[[i]] = cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE)
+  tlc_within_results_d1_t3[[i]] = cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d1_t3[[i]] = tlc_within_results_d1_t3[[i]][c(3,5)]
 }
 
@@ -669,7 +676,7 @@ tlc_within_d2_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t3 = list()
 for(i in 1:length(tlc_within_d2_base_t3)){
-  tlc_within_results_d2_t3[[i]] = cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE)
+  tlc_within_results_d2_t3[[i]] = cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d2_t3[[i]] = tlc_within_results_d2_t3[[i]][c(3,5)]
 }
 
@@ -689,7 +696,7 @@ tlc_within_d3_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t3 = list()
 for(i in 1:length(tlc_within_d3_base_t3)){
-  tlc_within_results_d3_t3[[i]] = cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE)
+  tlc_within_results_d3_t3[[i]] = cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d3_t3[[i]] = tlc_within_results_d3_t3[[i]][c(3,5)]
 }
 
@@ -709,7 +716,7 @@ tlc_within_d4_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t3 = list()
 for(i in 1:length(tlc_within_d4_base_t3)){
-  tlc_within_results_d4_t3[[i]] = cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE)
+  tlc_within_results_d4_t3[[i]] = cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d4_t3[[i]] = tlc_within_results_d4_t3[[i]][c(3,5)]
 }
 
@@ -730,7 +737,7 @@ tlc_within_d5_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t3 = list()
 for(i in 1:length(tlc_within_d5_base_t3)){
-  tlc_within_results_d5_t3[[i]] = cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE)
+  tlc_within_results_d5_t3[[i]] = cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE, conf.level = .983)
   tlc_within_results_d5_t3[[i]] = tlc_within_results_d5_t3[[i]][c(3,5)]
 }
 
@@ -757,15 +764,14 @@ tlc_within_t3_lower = rowMeans(tlc_within_t3_lower)
 tlc_within_t3_lower
 
 tlc_within_t3_results = data.frame(cohen_d = tlc_within_t3_cohen_d, upper = tlc_within_t3_upper, lower = tlc_within_t3_lower)
+tlc_within_t3_results = round(tlc_within_t3_results, 3)
 tlc_within_t3_results$cohen_d = ifelse(tlc_within_t3_results$upper > 0 & tlc_within_t3_results$lower < 0, tlc_within_t3_results$cohen_d, paste0(tlc_within_t3_results$cohen_d, "*"))
 tlc_within_t3_results$ci_95 = paste0(tlc_within_t3_results$lower, sep = ",", tlc_within_t3_results$upper)
 tlc_within_t3_results[,2:3] = NULL
 
-
 tlc_within_results = rbind(tlc_within_t1_results, tlc_within_t2_results, tlc_within_t3_results)
 
 tlc_within_results
-
 ```
 ######################
 Between tlc
@@ -882,9 +888,9 @@ ses_all = rbind(ses_1, ses_2, ses_3, ses_4, ses_5)
 coefs_ses =  mi.meld(coefs_all,ses_all)
 t_stats = coefs_ses$q.mi / coefs_ses$se.mi
 # n = 206 minus 5 for parameters
-p_values = round(2*pt(-abs(t_stats), df = 199),3)
+p_values = round(2*pt(-abs(t_stats), df = 201),3)
 #Critica t
-critical_ts= abs(qt(0.05/2, 199))
+critical_ts= abs(qt(0.017/2, 201))
 critical_ts
 upper = round(coefs_ses$q.mi+(critical_ts*coefs_ses$se.mi),3)
 lower = round(coefs_ses$q.mi-(critical_ts*coefs_ses$se.mi),3)
@@ -893,7 +899,7 @@ ci_95 = paste0(lower, sep=",", upper)
 tlc_between_impute_results = data.frame(t(coefs_ses$q.mi), t(coefs_ses$se.mi), t(p_values), ci_95)
 colnames(tlc_between_impute_results) = c("parameter_estimate", "se", "p_value", "ci_95")
 tlc_between_impute_results[,1:2] = round(tlc_between_impute_results[,1:2], 3)
-tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .05, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
+tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .017, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
 tlc_between_impute_results
 
 
@@ -981,7 +987,7 @@ con_bewteen
 
 con_between = mi.meld(mean_con_bewteen, se_con_between)
 con_between
-critical_t = abs(qt(0.05/2, dim(impute_dat_loop[[1]])[[1]]-5))
+critical_t = abs(qt(0.017/2, dim(impute_dat_loop[[1]])[[1]]-5))
 est_con = data.frame(est_con  = con_between$q.mi)
 se_con = data.frame(se_con = con_between$se.mi)
 est_se_con = data.frame(est_con = t(est_con), se_con = t(se_con))
@@ -999,7 +1005,7 @@ ci_95 = paste0(upper, sep =",", lower)
 ci_95
 est_se_con$ci_95 = ci_95
 est_se_con
-est_se_con$est_con = ifelse(est_se_con$p_values < .05, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
+est_se_con$est_con = ifelse(est_se_con$p_values < .017, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
 est_se_con$est_con
 est_se_con
 
