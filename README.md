@@ -410,7 +410,7 @@ tlc_within_d1_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t1 = list()
 for(i in 1:length(tlc_within_d1_base_t1)){
-  tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t1[[i]] = tlc_within_results_d1_t1[[i]][c(3,5)]
 }
 
@@ -430,7 +430,7 @@ tlc_within_d2_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t1 = list()
 for(i in 1:length(tlc_within_d2_base_t1)){
-  tlc_within_results_d2_t1[[i]] = cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d2_t1[[i]] = cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t1[[i]] = tlc_within_results_d2_t1[[i]][c(3,5)]
 }
 
@@ -450,7 +450,7 @@ tlc_within_d3_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t1 = list()
 for(i in 1:length(tlc_within_d3_base_t1)){
-  tlc_within_results_d3_t1[[i]] = cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d3_t1[[i]] = cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t1[[i]] = tlc_within_results_d3_t1[[i]][c(3,5)]
 }
 
@@ -470,7 +470,7 @@ tlc_within_d4_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t1 = list()
 for(i in 1:length(tlc_within_d4_base_t1)){
-  tlc_within_results_d4_t1[[i]] = cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d4_t1[[i]] = cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t1[[i]] = tlc_within_results_d4_t1[[i]][c(3,5)]
 }
 
@@ -491,7 +491,7 @@ tlc_within_d5_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t1 = list()
 for(i in 1:length(tlc_within_d5_base_t1)){
-  tlc_within_results_d5_t1[[i]] = cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d5_t1[[i]] = cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t1[[i]] = tlc_within_results_d5_t1[[i]][c(3,5)]
 }
 
@@ -534,7 +534,7 @@ tlc_within_d1_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t2 = list()
 for(i in 1:length(tlc_within_d1_base_t2)){
-  tlc_within_results_d1_t2[[i]] = cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d1_t2[[i]] = cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t2[[i]] = tlc_within_results_d1_t2[[i]][c(3,5)]
 }
 
@@ -554,7 +554,7 @@ tlc_within_d2_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t2 = list()
 for(i in 1:length(tlc_within_d2_base_t2)){
-  tlc_within_results_d2_t2[[i]] = cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d2_t2[[i]] = cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t2[[i]] = tlc_within_results_d2_t2[[i]][c(3,5)]
 }
 
@@ -574,7 +574,7 @@ tlc_within_d3_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t2 = list()
 for(i in 1:length(tlc_within_d3_base_t2)){
-  tlc_within_results_d3_t2[[i]] = cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d3_t2[[i]] = cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t2[[i]] = tlc_within_results_d3_t2[[i]][c(3,5)]
 }
 
@@ -594,7 +594,7 @@ tlc_within_d4_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t2 = list()
 for(i in 1:length(tlc_within_d4_base_t2)){
-  tlc_within_results_d4_t2[[i]] = cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d4_t2[[i]] = cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t2[[i]] = tlc_within_results_d4_t2[[i]][c(3,5)]
 }
 
@@ -615,7 +615,7 @@ tlc_within_d5_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t2 = list()
 for(i in 1:length(tlc_within_d5_base_t2)){
-  tlc_within_results_d5_t2[[i]] = cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d5_t2[[i]] = cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t2[[i]] = tlc_within_results_d5_t2[[i]][c(3,5)]
 }
 
@@ -656,7 +656,7 @@ tlc_within_d1_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t3 = list()
 for(i in 1:length(tlc_within_d1_base_t3)){
-  tlc_within_results_d1_t3[[i]] = cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d1_t3[[i]] = cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t3[[i]] = tlc_within_results_d1_t3[[i]][c(3,5)]
 }
 
@@ -676,7 +676,7 @@ tlc_within_d2_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t3 = list()
 for(i in 1:length(tlc_within_d2_base_t3)){
-  tlc_within_results_d2_t3[[i]] = cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d2_t3[[i]] = cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t3[[i]] = tlc_within_results_d2_t3[[i]][c(3,5)]
 }
 
@@ -696,7 +696,7 @@ tlc_within_d3_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t3 = list()
 for(i in 1:length(tlc_within_d3_base_t3)){
-  tlc_within_results_d3_t3[[i]] = cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d3_t3[[i]] = cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t3[[i]] = tlc_within_results_d3_t3[[i]][c(3,5)]
 }
 
@@ -716,7 +716,7 @@ tlc_within_d4_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t3 = list()
 for(i in 1:length(tlc_within_d4_base_t3)){
-  tlc_within_results_d4_t3[[i]] = cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d4_t3[[i]] = cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t3[[i]] = tlc_within_results_d4_t3[[i]][c(3,5)]
 }
 
@@ -737,7 +737,7 @@ tlc_within_d5_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t3 = list()
 for(i in 1:length(tlc_within_d5_base_t3)){
-  tlc_within_results_d5_t3[[i]] = cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE, conf.level = .983)
+  tlc_within_results_d5_t3[[i]] = cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t3[[i]] = tlc_within_results_d5_t3[[i]][c(3,5)]
 }
 
@@ -890,7 +890,7 @@ t_stats = coefs_ses$q.mi / coefs_ses$se.mi
 # n = 206 minus 5 for parameters
 p_values = round(2*pt(-abs(t_stats), df = 201),3)
 #Critica t
-critical_ts= abs(qt(0.017/2, 201))
+critical_ts= abs(qt(0.05/2, 201))
 critical_ts
 upper = round(coefs_ses$q.mi+(critical_ts*coefs_ses$se.mi),3)
 lower = round(coefs_ses$q.mi-(critical_ts*coefs_ses$se.mi),3)
@@ -899,7 +899,7 @@ ci_95 = paste0(lower, sep=",", upper)
 tlc_between_impute_results = data.frame(t(coefs_ses$q.mi), t(coefs_ses$se.mi), t(p_values), ci_95)
 colnames(tlc_between_impute_results) = c("parameter_estimate", "se", "p_value", "ci_95")
 tlc_between_impute_results[,1:2] = round(tlc_between_impute_results[,1:2], 3)
-tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .017, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
+tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .05, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
 tlc_between_impute_results
 
 
@@ -987,7 +987,7 @@ con_bewteen
 
 con_between = mi.meld(mean_con_bewteen, se_con_between)
 con_between
-critical_t = abs(qt(0.017/2, dim(impute_dat_loop[[1]])[[1]]-5))
+critical_t = abs(qt(0.05/2, dim(impute_dat_loop[[1]])[[1]]-5))
 est_con = data.frame(est_con  = con_between$q.mi)
 se_con = data.frame(se_con = con_between$se.mi)
 est_se_con = data.frame(est_con = t(est_con), se_con = t(se_con))
@@ -1005,7 +1005,7 @@ ci_95 = paste0(upper, sep =",", lower)
 ci_95
 est_se_con$ci_95 = ci_95
 est_se_con
-est_se_con$est_con = ifelse(est_se_con$p_values < .017, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
+est_se_con$est_con = ifelse(est_se_con$p_values < .05, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
 est_se_con$est_con
 est_se_con
 
