@@ -22,7 +22,6 @@ head(tlc_data)
 colnames(tlc_data)[1] = "YouthID"
 head(tlc_data)
 
-
 describe.factor(tlc_data$CSSRS1)
 describe.factor(tlc_data$CSSRS4)
 describe.factor(tlc_data$AttemptSuicide)
@@ -174,6 +173,13 @@ tlc_data_id_treat = subset(tlc_data_id_treat, no_treat == TRUE)
 tlc_data_id_treat = data.frame(id = tlc_data_id_treat$YouthID, treat = tlc_data_id_treat$TXPackageAssigned)
 
 write.csv(tlc_data_id_treat ,"tlc_data_id_treat.csv", row.names = FALSE)
+
+##### Figure out what is missing treatment assignment
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_analysis_average$na_treat
+tlc_data_analysis_average$no_treat = is.na(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_id_treat = subset(tlc_data_analysis_average, no_treat == TRUE)
+tlc_data_id_treat
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -230,6 +236,10 @@ missing_results = data.frame(missing_results, explain)
 
 write.csv(missing_results, "missing_results.csv")
 
+### Overwrite the main data file with quasi ITT, because that is the data you are using
+tlc_data_analysis_average = quasi_itt_dat
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_analysis_average$no_treat = NULL
 ```
 Descriptive statistics
 
@@ -240,7 +250,7 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
 head(tlc_data_analysis_average)
-### 1 put into an excel form
+### 
 dim(tlc_data_analysis_average)
 library(psych)
 con_vars  = tlc_data_analysis_average[,c(3,8,14:33)]
@@ -257,7 +267,7 @@ con_vars_results = data.frame(con_vars_mean, con_vars_sd, con_vars_range)
 con_vars_results[,1:2] = round(con_vars_results[,1:2],3)
 con_vars_results
 colnames(con_vars_results) = c("mean_count", "sd_percent", "range")
-con_vars_results
+write.csv(con_vars_results, "con_vars_results.csv")
 ##### Get cat vars
 head(tlc_data_analysis_average)
 cat_vars = tlc_data_analysis_average[,c(2,4:7,9:13)] 
@@ -266,10 +276,8 @@ cat_vars = data.frame(cat_vars)
 cat_vars = t(cat_vars)
 cat_vars = data.frame(cat_vars)
 cat_vars$Percent = round(cat_vars$Percent, 3)
-cat_vars
+write.csv(cat_vars, "cat_vars.csv")
 ### 3
-describe.factor(tlc_complete$CrisisPlan80Time)
-head(tlc_complete)
 ### Now percentage of missing for the count vars
 var_missing =  miss_var_summary(tlc_data_analysis_average)
 var_missing$pct_miss = round(var_missing$pct_miss, 3)
@@ -372,7 +380,7 @@ Imputted results
 Imputation
 ```{r}
 library(Amelia)
-impute_dat = quasi_itt_dat
+impute_dat = tlc_data_analysis_average
 dim(impute_dat)
 describe.factor(impute_dat$TXPackageAssigned)
 ### Try coding as binary for everything besies TXPackageAssigned package
@@ -407,7 +415,7 @@ tlc_within_d1_base_t1 = subset(impute_dat_loop[[1]][,c(2,5:14)], TXPackageAssign
 tlc_within_d1_dis_t1 = subset(impute_dat_loop[[1]][,c(2,15:24)], TXPackageAssigned == 1)
 tlc_within_d1_base_t1$TXPackageAssigned = NULL
 tlc_within_d1_dis_t1$TXPackageAssigned = NULL
-
+library(effsize)
 tlc_within_results_d1_t1 = list()
 for(i in 1:length(tlc_within_d1_base_t1)){
   tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .95)
@@ -771,7 +779,7 @@ tlc_within_t3_results[,2:3] = NULL
 
 tlc_within_results = rbind(tlc_within_t1_results, tlc_within_t2_results, tlc_within_t3_results)
 
-tlc_within_results
+write.csv(tlc_within_results, "tlc_within_results.csv", row.names = FALSE)
 ```
 ######################
 Between tlc
@@ -900,8 +908,9 @@ tlc_between_impute_results = data.frame(t(coefs_ses$q.mi), t(coefs_ses$se.mi), t
 colnames(tlc_between_impute_results) = c("parameter_estimate", "se", "p_value", "ci_95")
 tlc_between_impute_results[,1:2] = round(tlc_between_impute_results[,1:2], 3)
 tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .05, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
-tlc_between_impute_results
 
+write.csv(tlc_between_impute_results, "tlc_between_impute_results.csv", row.names = FALSE)
+tlc_between_impute_results
 
 ```
 ############################
@@ -1011,6 +1020,7 @@ est_se_con
 
 
 ### Check that first is correct
+library(multcomp)
 test_tlc_con_dat = out_diff_dat[[1]]
 test_tlc_con_model = lm(RAS_1_diff ~ factor(TXPackageAssigned), data = test_tlc_con_dat)
 test_tlc_con_model
