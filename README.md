@@ -147,24 +147,8 @@ head(tlc_data_analysis_average)
 tlc_data_analysis_average
 
 ########## Invalid parts
-## Excluding .1's those without a TXPackageAssigned package assigned
-is.wholenumber <- function(x, tol = .Machine$double.eps^0.5)  abs(x - round(x)) < tol
-whole_number =  is.wholenumber(tlc_data_analysis_average$YouthID)
-tlc_data_analysis_average$whole_number = whole_number
-tlc_data_analysis_average = subset(tlc_data_analysis_average, whole_number == TRUE)
-dim(tlc_data_analysis_average)
-tlc_data_analysis_average$whole_number = NULL
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
 
-### Find duplicate IDs
-dup_id = describe.factor(tlc_data_analysis_average$YouthID)
-dup_id = data.frame(dup_id)
-dup_id =  t(dup_id)
-dup_id = data.frame(id = rownames(dup_id), dup_id)
-dup_id = data.frame(id = dup_id$id, count = dup_id$Count)
-dup_id
-dup_id = subset(dup_id, count > 1)
-dup_id$id = gsub("\\D", "", dup_id$id)
-write.csv(dup_id, "dup_id.csv", row.names = FALSE)
 ##### Identify which ones are missing TXPackageAssigneds for Rachel
 describe.factor(tlc_data_analysis_average$TXPackageAssigned)
 tlc_data_id_treat = tlc_data_analysis_average
@@ -268,7 +252,6 @@ cat_vars = data.frame(cat_vars)
 cat_vars$Percent = round(cat_vars$Percent, 3)
 cat_vars
 ### 3
-describe.factor(tlc_complete$CrisisPlan80Time)
 head(tlc_complete)
 ### Now percentage of missing for the count vars
 var_missing =  miss_var_summary(tlc_data_analysis_average)
