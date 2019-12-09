@@ -153,7 +153,10 @@ Get rid of missing data
 ```{r}
 library(MissMech)
 library(naniar)
+##### Get rid of EHR vars 
+tlc_data_analysis_average[,8:13] = NULL
 ### Assessing global missing data 
+
 dim(tlc_data_analysis_average)
 var_missing =  miss_var_summary(tlc_data_analysis_average)
 var_missing = data.frame(var_missing)
@@ -179,24 +182,14 @@ quasi_tot_n = dim(quasi_tot_dat)[1]
 quasi_tot_drop_out_rate = 1-(dim(quasi_tot_dat)[1]/dim(tlc_data_analysis_average)[1])
 
 
-### No psychotherapy or phq-9 still reject
-quasi_tot_dat =  quasi_itt_dat 
-no_phq9_psycho_dat = quasi_tot_dat
-no_phq9_psycho_dat$PHQ9_b = NULL
-no_phq9_psycho_dat$PHQ9_d = NULL
-no_phq9_psycho_dat$PHQ9_diff = NULL
-no_phq9_psycho_dat$HoursPsychotherapy = NULL
-no_phq9_psycho_dat_complete = na.omit(no_phq9_psycho_dat)
-quasi_tot_no_phq9_psycho_n = dim(no_phq9_psycho_dat_complete)[1]
-quasi_tot_no_phq9_psycho_n
 
 ### Put together all results
-missing_results = data.frame(full_n, quasi_itt_n, quasi_tot_n, quasi_itt_drop_out_rate, quasi_tot_drop_out_rate, quasi_tot_no_phq9_psycho_n)
+missing_results = data.frame(full_n, quasi_itt_n, quasi_tot_n, quasi_itt_drop_out_rate, quasi_tot_drop_out_rate)
 missing_results = round(missing_results, 3)
 missing_results = t(missing_results)
 colnames(missing_results)= "n_percent"
 #### Add a column with explainations for each of them
-explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data. Excluded if not assigned a TXPackageAssigned.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 70% of discharge.", "Percentage of missing data.", "N for complete data without PHQ-9 or Psychotherapy.")
+explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data. Excluded if not assigned a TXPackageAssigned.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 70% of discharge.", "Percentage of missing data.")
 missing_results = data.frame(missing_results, explain)
 
 write.csv(missing_results, "missing_results.csv")
