@@ -920,8 +920,26 @@ summary(t)
 
 
 ```
+Just omegas for each construct
+RAS 1,2,3,5; INQ 1,2; SSMI, and SIS 1 and SIS 2.
+```{r}
+RAS_b_pyscho = tlc_data_analysis[,9:28]
+RAS_b_1_pyscho = RAS_b_pyscho[,c(6:13,20)]
+RAS_b_2_pyscho = RAS_b_pyscho[,17:19]
+RAS_b_3_pyscho = RAS_b_pyscho[,1:5]
+RAS_b_5_pyscho = RAS_b_pyscho[,14:16]
 
+INQ_b_1_pyscho = tlc_data_analysis[,29:34]
 
+INQ_b_2_pyscho = tlc_data_analysis[,35:40]
+INQ_b_2_pyscho = 8-INQ_b_2_pyscho
+
+SSMI_b_pyscho = tlc_data_analysis[,41:45]
+
+SIS_b_pyscho = tlc_data_analysis[,46:52]
+SIS_b_1_pyscho = SIS_b_pyscho[,1:4]
+SIS_b_2_pyscho = SIS_b_pyscho[,5:7]
+```
 
 
 
@@ -1075,11 +1093,6 @@ for(i in 1:length(measure_invar_names)){
 anova_results
 
 ```
-
-
-
-
-
 RAS psycho
 ```{r}
 head(tlc_data_analysis)
