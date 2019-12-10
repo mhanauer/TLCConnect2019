@@ -142,9 +142,15 @@ PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
 #apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
 tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(1,2,4:8, 99:104)], RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4)
 
-head(tlc_data_analysis_average)
 
+### Get rid of missing treatments
+tlc_data_analysis_average$treat_missing = is.na(tlc_data_analysis_average$TXPackageAssigned)
+tlc_data_analysis_average = subset(tlc_data_analysis_average, treat_missing == FALSE)
 dim(tlc_data_analysis_average)
+tlc_data_analysis_average$treat_missing = NULL
+
+### Get rid of EHR vars and PHQ
+tlc_data_analysis_average[,c(8:13, 23,33)] = NULL
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -154,7 +160,7 @@ Get rid of missing data
 library(MissMech)
 library(naniar)
 ##### Get rid of EHR vars 
-tlc_data_analysis_average[,8:13] = NULL
+
 ### Assessing global missing data 
 
 dim(tlc_data_analysis_average)
@@ -189,13 +195,14 @@ missing_results = round(missing_results, 3)
 missing_results = t(missing_results)
 colnames(missing_results)= "n_percent"
 #### Add a column with explainations for each of them
-explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data. Excluded if not assigned a TXPackageAssigned.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 70% of discharge.", "Percentage of missing data.")
+explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 50% of data.", "Percentage of missing data.")
 missing_results = data.frame(missing_results, explain)
 
 write.csv(missing_results, "missing_results.csv")
 
 describe.factor(quasi_itt_dat$TXPackageAssigned)
-write.csv(tlc_data_analysis_average,"tlc_data_analysis_average.csv", row.names = FALSE)
+### Change to Quasi ITT data set
+tlc_data_analysis_average = quasi_itt_dat
 ```
 Descriptive statistics
 
@@ -206,13 +213,12 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
 head(tlc_data_analysis_average)
-tlc_data_analysis_average = quasi_itt_dat
 ### N 
 dim(tlc_data_analysis_average)
 ### 1 put into an excel form
 dim(tlc_data_analysis_average)
 library(psych)
-con_vars  = tlc_data_analysis_average[,c(3,8,14:33)]
+con_vars  = tlc_data_analysis_average[,c(3,8:24)]
 con_vars_mean = apply(con_vars,2, mean, na.rm = TRUE)
 con_vars_sd = apply(con_vars, 2, sd, na.rm = TRUE)
 con_vars_range = apply(con_vars, 2, range, na.rm = TRUE)
@@ -230,49 +236,20 @@ con_vars_results
 write.csv(con_vars_results, "con_vars_results.csv")
 ##### Get cat vars
 head(tlc_data_analysis_average)
-cat_vars = tlc_data_analysis_average[,c(2,4:7,9:13)] 
+cat_vars = tlc_data_analysis_average[,c(2,4:7)]
 cat_vars = apply(cat_vars, 2, function(x){describe.factor(x)})
 cat_vars = data.frame(cat_vars)
 cat_vars = t(cat_vars)
 cat_vars = data.frame(cat_vars)
 cat_vars$Percent = round(cat_vars$Percent, 3)
-cat_vars
 write.csv(cat_vars, "cat_vars.csv")
-### Now percentage of missing for the count vars
-var_missing =  miss_var_summary(tlc_data_analysis_average)
-var_missing$pct_miss = round(var_missing$pct_miss, 3)
-write.csv(var_missing, "var_missing.csv")
 ```
-(4) self-stigma of mental illness, thwarted belongingness, and perceived burdensomeness will each decrease 30% among youth enrolled in enhanced post-crisis follow-up by the discharge assessment; and 
-(5) scores on the suicidal ideation scale will decrease by 40% among youth enrolled in the enhanced post-crisis follow-up intervention
-(6) Scores on the recovery assessment scale will increase by 35% among youth enrolled in the enhanced post-crisis follow-up intervention
-```{r}
-head(tlc_data_analysis_average)
-### Pre 
-pre_scores_tlc=  tlc_data_analysis_average[,14:23]
-post_scores_tlc = tlc_data_analysis_average[,24:33]
-post_scores_tlc = apply(post_scores_tlc, 2, mean, na.rm = TRUE)
-pre_scores_tlc = apply(pre_scores_tlc, 2, mean, na.rm =TRUE)
 
-p_change = (post_scores_tlc-pre_scores_tlc)/pre_scores_tlc
-
-p_change_results = data.frame(pre_scores_tlc, post_scores_tlc, p_change)
-p_change_results = round(p_change_results, 3)
-p_change_results
-```
-(1)	a minimum of 5,660  youth will receive all components of the enhanced post-crisis follow-up intervention by the discharge survey 
-
-referrals will be retained at least 50% of the time among youth enrolled in the post-crisis follow-up intervention and follow-through with appointments will occur at least 75% of the time
-```{r}
-tlc_data_analysis_average$ReferralsEngaged_binary = ifelse(tlc_data_analysis_average$ReferralsEngaged > 0,1,0)
-describe.factor(tlc_data_analysis_average$ReferralsEngaged_binary)
-describe.factor(tlc_data_analysis_average$Attend75Referrals)
-```
 
 
 Check assumptions of normality
 ```{r}
-outcomes_tests = tlc_data_analysis_average[,14:22]
+outcomes_tests = tlc_data_analysis_average[,8:24]
 hist_results = list() 
 qq_results = list()
 shap_results = list()
@@ -284,61 +261,14 @@ for(i in 1:length(outcomes_tests)){
 shap_results
 ```
 
-###########################
-SIS outcomes associated with it
-##########################
-```{r}
-outcomes_freq
-corr.test(outcomes_freq)
 
-
-####### Suicide idea 
-suicide_idea_model_0 = lm(SIS_1_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
-vif(suicide_idea_model_0)
-suicide_idea_model_sum_0 = summary(suicide_idea_model_0)
-suicide_idea_model_sum_0
-round(suicide_idea_model_sum_0$coefficients,3)
-
-suicide_idea_model_1 = lm(SIS_1_diff ~ RAS_1_diff  + RAS_3_diff + INQ_1_diff + INQ_2_diff  + PHQ9_diff + SIS_2_diff, data = outcomes_freq_stand)
-suicide_idea_model_1_sum = summary(suicide_idea_model_1)
-suicide_idea_model_1_sum = round(suicide_idea_model_1_sum$coefficients,3)
-write.csv(suicide_idea_model_1_sum, "suicide_idea_model_1_sum.csv")
-
-checK_assump = gvlma(suicide_idea_model)
-checK_assump
-par(mar=c(1,1,1,1))
-plot.gvlma(checK_assump)
-library(car)
-checkresiduals(suicide_idea_model)
-
-### Second factor
-resolved_model_0 = lm(SIS_2_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff + SIS_1_diff , data = outcomes_freq_stand)
-vif(resolved_model_0)
-resolved_model_sum_0 = summary(resolved_model_0)
-resolved_model_sum_0
-resolved_model_sum_0 = round(resolved_model_sum_0$coefficients,3)
-write.csv(resolved_model_sum_0, "resolved_model_sum_0.csv")
-
-
-resolved_model_1 = lm(SIS_2_diff ~ RAS_1_diff + RAS_2_diff + RAS_3_diff + INQ_1_diff + INQ_2_diff + SSMI_diff + PHQ9_diff , data = outcomes_freq_stand)
-summary(resolved_model_1)
-
-checK_assump = gvlma(resolved_model_0)
-checK_assump
-par(mar=c(1,1,1,1))
-plot.gvlma(checK_assump)
-library(car)
-checkresiduals(resolved_model)
-
-
-```
 ###########################
 Imputted results
 ###########################
 Imputation
 ```{r}
 library(Amelia)
-impute_dat = quasi_itt_dat
+impute_dat = tlc_data_analysis_average
 dim(impute_dat)
 describe.factor(impute_dat$TXPackageAssigned)
 ### Try coding as binary for everything besies TXPackageAssigned package
@@ -349,9 +279,7 @@ impute_dat$non_white = ifelse(impute_dat$RaceEthnicity == 3,0,1)
 impute_dat$RaceEthnicity = NULL
 impute_dat$sexual_minority = ifelse(impute_dat$SexualOrientation == 5,0,1)
 impute_dat$SexualOrientation = NULL
-
-## EHR variables causing problems.
-impute_dat[,5:10] = NULL
+impute_dat
 
 
 a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
@@ -359,6 +287,8 @@ compare.density(a.out, var = "SIS_d_2_average")
 summary(a.out)
 disperse(a.out)
 impute_dat_loop = a.out$imputations
+impute_dat_loop[[1]][,c(2,14:22)]
+impute_dat_loop[[1]][,c(2,5:13)]
 ```
 
 
@@ -369,8 +299,8 @@ Phone only
 Get means and sds then meld together so you don't have to deal with it, then you can calcaulate cohen's d by hand for all of them.
 ```{r}
 #### Treatment 1
-tlc_within_d1_base_t1 = subset(impute_dat_loop[[1]][,c(2,5:14)], TXPackageAssigned == 1)
-tlc_within_d1_dis_t1 = subset(impute_dat_loop[[1]][,c(2,15:24)], TXPackageAssigned == 1)
+tlc_within_d1_base_t1 = subset(impute_dat_loop[[1]][,c(2,5:13)], TXPackageAssigned == 1)
+tlc_within_d1_dis_t1 = subset(impute_dat_loop[[1]][,c(2,14:23)], TXPackageAssigned == 1)
 tlc_within_d1_base_t1$TXPackageAssigned = NULL
 tlc_within_d1_dis_t1$TXPackageAssigned = NULL
 
@@ -390,8 +320,8 @@ tlc_within_results_d1_t1
 colnames(tlc_within_results_d1_t1) = c("cohen_d", "lower", "upper")
 tlc_within_results_d1_t1
 
-tlc_within_d2_base_t1 = subset(impute_dat_loop[[2]][,c(2,5:14)], TXPackageAssigned == 1)
-tlc_within_d2_dis_t1 = subset(impute_dat_loop[[2]][,c(2,15:24)], TXPackageAssigned == 1)
+tlc_within_d2_base_t1 = subset(impute_dat_loop[[2]][,c(2,5:13)], TXPackageAssigned == 1)
+tlc_within_d2_dis_t1 = subset(impute_dat_loop[[2]][,c(2,14:22)], TXPackageAssigned == 1)
 tlc_within_d2_base_t1$TXPackageAssigned = NULL
 tlc_within_d2_dis_t1$TXPackageAssigned = NULL
 
@@ -410,8 +340,8 @@ tlc_within_results_d2_t1
 colnames(tlc_within_results_d2_t1) = c("cohen_d", "lower", "upper")
 tlc_within_results_d2_t1
 
-tlc_within_d3_base_t1 = subset(impute_dat_loop[[3]][,c(2,5:14)], TXPackageAssigned == 1)
-tlc_within_d3_dis_t1 = subset(impute_dat_loop[[3]][,c(2,15:24)], TXPackageAssigned == 1)
+tlc_within_d3_base_t1 = subset(impute_dat_loop[[3]][,c(2,5:13)], TXPackageAssigned == 1)
+tlc_within_d3_dis_t1 = subset(impute_dat_loop[[3]][,c(2,14:22)], TXPackageAssigned == 1)
 tlc_within_d3_base_t1$TXPackageAssigned = NULL
 tlc_within_d3_dis_t1$TXPackageAssigned = NULL
 
@@ -430,8 +360,8 @@ tlc_within_results_d3_t1
 colnames(tlc_within_results_d3_t1) = c("cohen_d", "lower", "upper")
 tlc_within_results_d3_t1
 
-tlc_within_d4_base_t1 = subset(impute_dat_loop[[4]][,c(2,5:14)], TXPackageAssigned == 1)
-tlc_within_d4_dis_t1 = subset(impute_dat_loop[[4]][,c(2,15:24)], TXPackageAssigned == 1)
+tlc_within_d4_base_t1 = subset(impute_dat_loop[[4]][,c(2,5:13)], TXPackageAssigned == 1)
+tlc_within_d4_dis_t1 = subset(impute_dat_loop[[4]][,c(2,14:22)], TXPackageAssigned == 1)
 tlc_within_d4_base_t1$TXPackageAssigned = NULL
 tlc_within_d4_dis_t1$TXPackageAssigned = NULL
 
@@ -451,8 +381,8 @@ colnames(tlc_within_results_d4_t1) = c("cohen_d", "lower", "upper")
 tlc_within_results_d4_t1
 
 
-tlc_within_d5_base_t1 = subset(impute_dat_loop[[5]][,c(2,5:14)], TXPackageAssigned == 1)
-tlc_within_d5_dis_t1 = subset(impute_dat_loop[[5]][,c(2,15:24)], TXPackageAssigned == 1)
+tlc_within_d5_base_t1 = subset(impute_dat_loop[[5]][,c(2,5:13)], TXPackageAssigned == 1)
+tlc_within_d5_dis_t1 = subset(impute_dat_loop[[5]][,c(2,14:22)], TXPackageAssigned == 1)
 tlc_within_d5_base_t1$TXPackageAssigned = NULL
 tlc_within_d5_dis_t1$TXPackageAssigned = NULL
 
@@ -494,8 +424,8 @@ tlc_within_t1_results[,2:3] = NULL
 tlc_within_t1_results
 
 #### Treatment 2
-tlc_within_d1_base_t2 = subset(impute_dat_loop[[1]][,c(2,5:14)], TXPackageAssigned == 2)
-tlc_within_d1_dis_t2 = subset(impute_dat_loop[[1]][,c(2,15:24)], TXPackageAssigned == 2)
+tlc_within_d1_base_t2 = subset(impute_dat_loop[[1]][,c(2,5:13)], TXPackageAssigned == 2)
+tlc_within_d1_dis_t2 = subset(impute_dat_loop[[1]][,c(2,14:22)], TXPackageAssigned == 2)
 tlc_within_d1_base_t2$TXPackageAssigned = NULL
 tlc_within_d1_dis_t2$TXPackageAssigned = NULL
 
@@ -514,8 +444,8 @@ tlc_within_results_d1_t2
 colnames(tlc_within_results_d1_t2) = c("cohen_d", "lower", "upper")
 tlc_within_results_d1_t2
 
-tlc_within_d2_base_t2 = subset(impute_dat_loop[[2]][,c(2,5:14)], TXPackageAssigned == 2)
-tlc_within_d2_dis_t2 = subset(impute_dat_loop[[2]][,c(2,15:24)], TXPackageAssigned == 2)
+tlc_within_d2_base_t2 = subset(impute_dat_loop[[2]][,c(2,5:13)], TXPackageAssigned == 2)
+tlc_within_d2_dis_t2 = subset(impute_dat_loop[[2]][,c(2,14:22)], TXPackageAssigned == 2)
 tlc_within_d2_base_t2$TXPackageAssigned = NULL
 tlc_within_d2_dis_t2$TXPackageAssigned = NULL
 
@@ -534,8 +464,8 @@ tlc_within_results_d2_t2
 colnames(tlc_within_results_d2_t2) = c("cohen_d", "lower", "upper")
 tlc_within_results_d2_t2
 
-tlc_within_d3_base_t2 = subset(impute_dat_loop[[3]][,c(2,5:14)], TXPackageAssigned == 2)
-tlc_within_d3_dis_t2 = subset(impute_dat_loop[[3]][,c(2,15:24)], TXPackageAssigned == 2)
+tlc_within_d3_base_t2 = subset(impute_dat_loop[[3]][,c(2,5:13)], TXPackageAssigned == 2)
+tlc_within_d3_dis_t2 = subset(impute_dat_loop[[3]][,c(2,14:22)], TXPackageAssigned == 2)
 tlc_within_d3_base_t2$TXPackageAssigned = NULL
 tlc_within_d3_dis_t2$TXPackageAssigned = NULL
 
@@ -554,8 +484,8 @@ tlc_within_results_d3_t2
 colnames(tlc_within_results_d3_t2) = c("cohen_d", "lower", "upper")
 tlc_within_results_d3_t2
 
-tlc_within_d4_base_t2 = subset(impute_dat_loop[[4]][,c(2,5:14)], TXPackageAssigned == 2)
-tlc_within_d4_dis_t2 = subset(impute_dat_loop[[4]][,c(2,15:24)], TXPackageAssigned == 2)
+tlc_within_d4_base_t2 = subset(impute_dat_loop[[4]][,c(2,5:13)], TXPackageAssigned == 2)
+tlc_within_d4_dis_t2 = subset(impute_dat_loop[[4]][,c(2,14:22)], TXPackageAssigned == 2)
 tlc_within_d4_base_t2$TXPackageAssigned = NULL
 tlc_within_d4_dis_t2$TXPackageAssigned = NULL
 
@@ -575,8 +505,8 @@ colnames(tlc_within_results_d4_t2) = c("cohen_d", "lower", "upper")
 tlc_within_results_d4_t2
 
 
-tlc_within_d5_base_t2 = subset(impute_dat_loop[[5]][,c(2,5:14)], TXPackageAssigned == 2)
-tlc_within_d5_dis_t2 = subset(impute_dat_loop[[5]][,c(2,15:24)], TXPackageAssigned == 2)
+tlc_within_d5_base_t2 = subset(impute_dat_loop[[5]][,c(2,5:13)], TXPackageAssigned == 2)
+tlc_within_d5_dis_t2 = subset(impute_dat_loop[[5]][,c(2,14:22)], TXPackageAssigned == 2)
 tlc_within_d5_base_t2$TXPackageAssigned = NULL
 tlc_within_d5_dis_t2$TXPackageAssigned = NULL
 
@@ -616,8 +546,8 @@ tlc_within_t2_results[,2:3] = NULL
 tlc_within_t2_results
 
 #### Treatment 3
-tlc_within_d1_base_t3 = subset(impute_dat_loop[[1]][,c(2,5:14)], TXPackageAssigned == 3)
-tlc_within_d1_dis_t3 = subset(impute_dat_loop[[1]][,c(2,15:24)], TXPackageAssigned == 3)
+tlc_within_d1_base_t3 = subset(impute_dat_loop[[1]][,c(2,5:13)], TXPackageAssigned == 3)
+tlc_within_d1_dis_t3 = subset(impute_dat_loop[[1]][,c(2,14:22)], TXPackageAssigned == 3)
 tlc_within_d1_base_t3$TXPackageAssigned = NULL
 tlc_within_d1_dis_t3$TXPackageAssigned = NULL
 
@@ -636,8 +566,8 @@ tlc_within_results_d1_t3
 colnames(tlc_within_results_d1_t3) = c("cohen_d", "lower", "upper")
 tlc_within_results_d1_t3
 
-tlc_within_d2_base_t3 = subset(impute_dat_loop[[2]][,c(2,5:14)], TXPackageAssigned == 3)
-tlc_within_d2_dis_t3 = subset(impute_dat_loop[[2]][,c(2,15:24)], TXPackageAssigned == 3)
+tlc_within_d2_base_t3 = subset(impute_dat_loop[[2]][,c(2,5:13)], TXPackageAssigned == 3)
+tlc_within_d2_dis_t3 = subset(impute_dat_loop[[2]][,c(2,14:22)], TXPackageAssigned == 3)
 tlc_within_d2_base_t3$TXPackageAssigned = NULL
 tlc_within_d2_dis_t3$TXPackageAssigned = NULL
 
@@ -656,8 +586,8 @@ tlc_within_results_d2_t3
 colnames(tlc_within_results_d2_t3) = c("cohen_d", "lower", "upper")
 tlc_within_results_d2_t3
 
-tlc_within_d3_base_t3 = subset(impute_dat_loop[[3]][,c(2,5:14)], TXPackageAssigned == 3)
-tlc_within_d3_dis_t3 = subset(impute_dat_loop[[3]][,c(2,15:24)], TXPackageAssigned == 3)
+tlc_within_d3_base_t3 = subset(impute_dat_loop[[3]][,c(2,5:13)], TXPackageAssigned == 3)
+tlc_within_d3_dis_t3 = subset(impute_dat_loop[[3]][,c(2,14:22)], TXPackageAssigned == 3)
 tlc_within_d3_base_t3$TXPackageAssigned = NULL
 tlc_within_d3_dis_t3$TXPackageAssigned = NULL
 
@@ -676,8 +606,8 @@ tlc_within_results_d3_t3
 colnames(tlc_within_results_d3_t3) = c("cohen_d", "lower", "upper")
 tlc_within_results_d3_t3
 
-tlc_within_d4_base_t3 = subset(impute_dat_loop[[4]][,c(2,5:14)], TXPackageAssigned == 3)
-tlc_within_d4_dis_t3 = subset(impute_dat_loop[[4]][,c(2,15:24)], TXPackageAssigned == 3)
+tlc_within_d4_base_t3 = subset(impute_dat_loop[[4]][,c(2,5:13)], TXPackageAssigned == 3)
+tlc_within_d4_dis_t3 = subset(impute_dat_loop[[4]][,c(2,14:22)], TXPackageAssigned == 3)
 tlc_within_d4_base_t3$TXPackageAssigned = NULL
 tlc_within_d4_dis_t3$TXPackageAssigned = NULL
 
@@ -697,8 +627,8 @@ colnames(tlc_within_results_d4_t3) = c("cohen_d", "lower", "upper")
 tlc_within_results_d4_t3
 
 
-tlc_within_d5_base_t3 = subset(impute_dat_loop[[5]][,c(2,5:14)], TXPackageAssigned == 3)
-tlc_within_d5_dis_t3 = subset(impute_dat_loop[[5]][,c(2,15:24)], TXPackageAssigned == 3)
+tlc_within_d5_base_t3 = subset(impute_dat_loop[[5]][,c(2,5:13)], TXPackageAssigned == 3)
+tlc_within_d5_dis_t3 = subset(impute_dat_loop[[5]][,c(2,14:22)], TXPackageAssigned == 3)
 tlc_within_d5_base_t3$TXPackageAssigned = NULL
 tlc_within_d5_dis_t3$TXPackageAssigned = NULL
 
@@ -739,6 +669,7 @@ tlc_within_t3_results[,2:3] = NULL
 tlc_within_results = rbind(tlc_within_t1_results, tlc_within_t2_results, tlc_within_t3_results)
 
 write.csv(tlc_within_results, "tlc_within_results.csv", row.names = FALSE)
+
 ```
 ######################
 Between tlc
@@ -749,8 +680,8 @@ Between tlc
 out_diff_dat = list()
 impute_dat_loop[[1]][5:14]
 for(i in 1:length(impute_dat_loop)){
-  out_diff_dat[[i]] = impute_dat_loop[[i]][15:24]-impute_dat_loop[[i]][5:14]
-  colnames(out_diff_dat[[i]]) = c("RAS_1_diff", "RAS_2_diff", "RAS_3_diff", "RAS_5_diff", "INQ_1_diff", "INQ_2_diff", "SSMI_diff", "SIS_1_diff", "SIS_2_diff", "PHQ9_diff")
+  out_diff_dat[[i]] = impute_dat_loop[[i]][14:22]-impute_dat_loop[[i]][5:13]
+  colnames(out_diff_dat[[i]]) = c("RAS_1_diff", "RAS_2_diff", "RAS_3_diff", "RAS_5_diff", "INQ_1_diff", "INQ_2_diff", "SSMI_diff", "SIS_1_diff", "SIS_2_diff")
   out_diff_dat[[i]] = scale(out_diff_dat[[i]])
   out_diff_dat[[i]] =cbind(impute_dat_loop[[i]], out_diff_dat[[i]])
 }
@@ -759,7 +690,7 @@ impute_tlc_between_results = list()
 impute_tlc_between_results_sum = list()
 se_con = list()
 for(i in 1:length(out_diff_dat)){
-  impute_tlc_between_results[[i]]=lm(cbind(RAS_1_diff, RAS_2_diff,RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff, PHQ9_diff) ~ factor(TXPackageAssigned), data = out_diff_dat[[i]])
+  impute_tlc_between_results[[i]]=lm(cbind(RAS_1_diff, RAS_2_diff,RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff, SIS_2_diff) ~ factor(TXPackageAssigned), data = out_diff_dat[[i]])
 }
 
 impute_tlc_between_results_1 = summary(impute_tlc_between_results[[1]])
@@ -777,12 +708,12 @@ for(i in 1:length(impute_tlc_between_results_1)){
 }
 coefs_1
 coefs_1 = unlist(coefs_1)
-coefs_1 = matrix(coefs_1, ncol = 20)
+coefs_1 = matrix(coefs_1, ncol = 18)
 coefs_1
 
 ses_1
 ses_1 = unlist(ses_1)
-ses_1 = matrix(ses_1, ncol = 20)
+ses_1 = matrix(ses_1, ncol = 18)
 ses_1
 
 
@@ -794,12 +725,12 @@ for(i in 1:length(impute_tlc_between_results_2)){
 }
 coefs_2
 coefs_2 = unlist(coefs_2)
-coefs_2 = matrix(coefs_2, ncol = 20)
+coefs_2 = matrix(coefs_2, ncol = 18)
 coefs_2
 
 ses_2
 ses_2 = unlist(ses_2)
-ses_2 = matrix(ses_2, ncol = 20)
+ses_2 = matrix(ses_2, ncol = 18)
 ses_2
 
 coefs_3 = list()
@@ -810,12 +741,12 @@ for(i in 1:length(impute_tlc_between_results_3)){
 }
 coefs_3
 coefs_3 = unlist(coefs_3)
-coefs_3 = matrix(coefs_3, ncol = 20)
+coefs_3 = matrix(coefs_3, ncol = 18)
 coefs_3
 
 ses_3
 ses_3 = unlist(ses_3)
-ses_3 = matrix(ses_3, ncol = 20)
+ses_3 = matrix(ses_3, ncol = 18)
 ses_3
 
 coefs_4 = list()
@@ -826,12 +757,12 @@ for(i in 1:length(impute_tlc_between_results_4)){
 }
 coefs_4
 coefs_4 = unlist(coefs_4)
-coefs_4 = matrix(coefs_4, ncol = 20)
+coefs_4 = matrix(coefs_4, ncol = 18)
 coefs_4
 
 ses_4
 ses_4 = unlist(ses_4)
-ses_4 = matrix(ses_4, ncol = 20)
+ses_4 = matrix(ses_4, ncol = 18)
 ses_4
 
 coefs_5 = list()
@@ -842,12 +773,12 @@ for(i in 1:length(impute_tlc_between_results_5)){
 }
 coefs_5
 coefs_5 = unlist(coefs_5)
-coefs_5 = matrix(coefs_5, ncol = 20)
+coefs_5 = matrix(coefs_5, ncol = 18)
 coefs_5
 
 ses_5
 ses_5 = unlist(ses_5)
-ses_5 = matrix(ses_5, ncol = 20)
+ses_5 = matrix(ses_5, ncol = 18)
 ses_5
 
 coefs_all = rbind(coefs_1, coefs_2, coefs_3, coefs_4, coefs_5)
@@ -992,125 +923,6 @@ summary(t)
 
 
 
-
-Try testing whether the inclusion of HoursPsychotherapy, CurrentlyEngaged makes a difference
-
-•	What program/contextual factors are associated with which outcomes?
-```{r}
-describe(outcomes_freq_stand)
-tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned === 1)
-cor(tlc_complete_t1[,7:12])
-outcomes_t1 = tlc_complete_t1[,13:22]
-
-results_t1 = list()
-for(i in 1:length(outcomes_t1)){
-  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ HoursPsychotherapy  + Attend75Referrals+ CrisisPlan80Time, data = tlc_complete_t1))
-}
-
-results_t1
-
-tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned === 2)
-outcomes_t2 = tlc_complete_t2[,13:22]
-describe(outcomes_t2)
-
-results_t2 = list()
-for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ HoursPsychotherapy  + Attend75Referrals+  CrisisPlan80Time, data = tlc_complete_t2))
-}
-results_t2
-
-tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned === 3)
-outcomes_t3 = tlc_complete_t3[,13:22]
-
-results_t3 = list()
-for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~ HoursPsychotherapy  + Attend75Referrals+    CrisisPlan80Time, data = tlc_complete_t3))
-}
-results_t3
-
-```
-Try testing whether the inclusion of demos makes a difference
-
-•	What individual factors were associated with outcomes, including race/ethnicity/sexual identity (sexual orientation/gender identity)?
-```{r}
-tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned === 1)
-cor(tlc_complete_t1[,7:12])
-outcomes_t1 = tlc_complete_t1[,13:22]
-#Age, Gender (female), RaceEthnicity (non-white), SexualOrientation (sexual minor)
-tlc_complete_t1$Gender = ifelse(tlc_complete_t1$Gender == 1, 0,1)
-tlc_complete_t1$RaceEthnicity = ifelse(tlc_complete_t1$RaceEthnicity == 3, 0,1)
-tlc_complete_t1$SexualOrientation = ifelse(tlc_complete_t1$SexualOrientation == 5,0,1)
-
-head(tlc_complete_t1)
-
-results_t1 = list()
-model_t1 = list()
-for(i in 1:length(outcomes_t1)){
-  model_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t1))
-}
-
-results_t1
-
-tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned === 2)
-outcomes_t2 = tlc_complete_t2[,13:22]
-describe(outcomes_t2)
-tlc_complete_t2$Gender = ifelse(tlc_complete_t2$Gender == 1, 0,1)
-tlc_complete_t2$RaceEthnicity = ifelse(tlc_complete_t2$RaceEthnicity == 3, 0,1)
-tlc_complete_t2$SexualOrientation = ifelse(tlc_complete_t2$SexualOrientation == 5,0,1)
-
-results_t2 = list()
-for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~ Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t2))
-}
-results_t2
-
-tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned === 3)
-outcomes_t3 = tlc_complete_t3[,13:22]
-tlc_complete_t3$Gender = ifelse(tlc_complete_t3$Gender == 1, 0,1)
-tlc_complete_t3$RaceEthnicity = ifelse(tlc_complete_t3$RaceEthnicity == 3, 0,1)
-tlc_complete_t3$SexualOrientation = ifelse(tlc_complete_t3$SexualOrientation == 5,0,1)
-
-results_t3 = list()
-for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~Age+ Gender +RaceEthnicity + SexualOrientation, data = tlc_complete_t3))
-}
-results_t3
-```
-
-•	Does effectiveness of the program intervention vary according to clinical risk presentation (e.g., suicide risk score, history of past attempts)? 
-
-```{r}
-tlc_complete_t1 = subset(tlc_complete, TXPackageAssigned === 1)
-outcomes_t1 = tlc_complete_t1[,13:22]
-
-head(tlc_complete_t1)
-
-results_t1 = list()
-for(i in 1:length(outcomes_t1)){
-  results_t1[[i]] = summary(stan_glm(outcomes_t1[[i]] ~ PHQ9_b, data = tlc_complete_t1))
-}
-
-results_t1
-
-tlc_complete_t2 = subset(tlc_complete, TXPackageAssigned === 2)
-outcomes_t2 = tlc_complete_t2[,13:22]
-
-results_t2 = list()
-for(i in 1:length(outcomes_t2)){
-  results_t2[[i]] = summary(stan_glm(outcomes_t2[[i]] ~PHQ9_b, data = tlc_complete_t2))
-}
-results_t2
-
-tlc_complete_t3 = subset(tlc_complete, TXPackageAssigned === 3)
-outcomes_t3 = tlc_complete_t3[,13:22]
-
-results_t3 = list()
-for(i in 1:length(outcomes_t3)){
-  results_t3[[i]] = summary(stan_glm(outcomes_t3[[i]] ~PHQ9_b, data = tlc_complete_t3))
-}
-results_t3
-
-```
 
 
 Pyschometrics
