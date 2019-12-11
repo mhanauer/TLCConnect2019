@@ -178,24 +178,24 @@ quasi_itt_dat$quasi_itt = NULL
 dim(quasi_itt_dat)
 quasi_itt_n = dim(quasi_itt_dat)[1]
 ### Percentage of drop for quasi itt
-quasi_itt_drop_out_rate = 1-(dim(quasi_itt_dat)[1]/dim(tlc_data_analysis_average)[1])
-quasi_itt_drop_out_rate
+quasi_itt_missing_rate = 1-(dim(quasi_itt_dat)[1]/dim(tlc_data_analysis_average)[1])
+quasi_itt_missing_rate
 quasi_itt_missing_percent = prop_miss_case(quasi_itt_dat)
 ####### 
-quasi_tot_dat =  quasi_itt_dat 
-quasi_tot_dat = na.omit(quasi_tot_dat)
-quasi_tot_n = dim(quasi_tot_dat)[1]
-quasi_tot_drop_out_rate = 1-(dim(quasi_tot_dat)[1]/dim(tlc_data_analysis_average)[1])
-
+tot_dat =  quasi_itt_dat 
+tot_dat = na.omit(tot_dat)
+tot_n = dim(tot_dat)[1]
+tot_missing_rate = 1-(dim(tot_dat)[1]/dim(tlc_data_analysis_average)[1])
+itt_missing_rate = 1-(dim(tot_dat)[1]/dim(quasi_itt_dat)[1])
 
 
 ### Put together all results
-missing_results = data.frame(full_n, quasi_itt_n, quasi_tot_n, quasi_itt_drop_out_rate, quasi_tot_drop_out_rate)
+missing_results = data.frame(full_n, quasi_itt_n, tot_n, quasi_itt_missing_rate, tot_missing_rate, itt_missing_rate)
 missing_results = round(missing_results, 3)
 missing_results = t(missing_results)
 colnames(missing_results)= "n_percent"
 #### Add a column with explainations for each of them
-explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 50% of data.", "Percentage of missing data.")
+explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 50% of data.", "Percentage of missing data for overall data set.", "Percentage of missing data using quasi_itt data set.")
 missing_results = data.frame(missing_results, explain)
 
 write.csv(missing_results, "missing_results.csv")
