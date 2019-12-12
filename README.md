@@ -247,21 +247,6 @@ write.csv(cat_vars, "cat_vars.csv")
 
 
 
-Check assumptions of normality
-```{r}
-outcomes_tests = tlc_data_analysis_average[,8:24]
-hist_results = list() 
-qq_results = list()
-shap_results = list()
-for(i in 1:length(outcomes_tests)){
-  hist_results[[i]] = hist(outcomes_tests[[i]])
-  qq_results[[i]] = qqnorm(outcomes_tests[[i]])
-  shap_results[[i]] = shapiro.test(outcomes_tests[[i]])
-}
-shap_results
-```
-
-
 ###########################
 Imputted results
 ###########################
@@ -290,6 +275,9 @@ impute_dat_loop = a.out$imputations
 impute_dat_loop[[1]][,c(2,14:22)]
 impute_dat_loop[[1]][,c(2,5:13)]
 ```
+
+
+
 
 
 ######################
@@ -674,6 +662,9 @@ write.csv(tlc_within_results, "tlc_within_results.csv", row.names = FALSE)
 ######################
 Between tlc
 ######################
+
+
+
 ```{r}
 
 ### Create difference scores
@@ -802,6 +793,21 @@ tlc_between_impute_results
 write.csv(tlc_between_impute_results, "tlc_between_impute_results.csv", row.names = FALSE)
 
 ```
+##############
+Check normality
+```{r}
+outcomes_tests = out_diff_dat[[1]][,26:33]
+hist_results = list() 
+qq_results = list()
+shap_results = list()
+for(i in 1:length(outcomes_tests)){
+  hist_results[[i]] = hist(outcomes_tests[[i]],  main = paste("Histogram of" , names(outcomes_tests)[[i]]))
+  qq_results[[i]] = qqnorm(outcomes_tests[[i]], main = names(outcomes_tests)[[i]])
+  shap_results[[i]] = shapiro.test(outcomes_tests[[i]])
+}
+shap_results
+```
+
 ############################
 Between TLC Contrasts
 ###########################
