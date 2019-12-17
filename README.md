@@ -151,6 +151,7 @@ tlc_data_analysis_average$treat_missing = NULL
 
 ### Get rid of EHR vars and PHQ
 tlc_data_analysis_average[,c(8:13, 23,33)] = NULL
+tlc_psycho=  tlc_data_analysis
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -974,8 +975,8 @@ Then do invar and see if related to any factors that you included
 
 See Hirschfeld(2014) for details
 ```{r}
-head(tlc_data_analysis)
-INQ_b_average = tlc_data_analysis[,29:40]
+head(tlc_psycho)
+INQ_b_average = tlc_psycho[,29:40]
 INQ_b_average$ID = 1:dim(INQ_b_average)[1]
 ## Create a variable without any missing data
 library(caret)
@@ -994,6 +995,7 @@ efa_b_3 = fa(r = efa_b_inq, nfactors = 3, fm = "gls")
 anova(efa_b_1, efa_b_2)
 anova(efa_b_2, efa_b_3)
 fa.diagram(efa_b_2)
+### Need three items for measurement invariance
 fa.diagram(efa_b_3)
 
 ####
@@ -1017,6 +1019,13 @@ model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
 fit_2 = cfa(model_2, estimator = "MLR", missing = "ML", data = cfa_b_inq)
 summary(fit_2, fit.measures = TRUE, standardized = TRUE)
 
+
+fit_2_all = cfa(model_2, estimator = "MLR", missing = "ML", data = INQ_b_average)
+summary(fit_2_all, fit.measures = TRUE, standardized = TRUE)
+
+```
+Measurement invariance
+```{r}
 ### Measurement invariance at base for everything besides time 
 library(semTools)
 
@@ -1031,7 +1040,7 @@ describe.factor(measure_invar$RaceEthnicity)
 ### Non-white versus white
 measure_invar$RaceEthnicity = ifelse(measure_invar$RaceEthnicity != 3, 0, 1)
 describe.factor(measure_invar$Version)
-###sexual minority versus sexual majority
+###sexual minority versus white
 describe.factor(measure_invar$SexualOrientation)
 measure_invar$SexualOrientation = ifelse(measure_invar$SexualOrientation != 5, 0,1)
 measure_invar$Age = as.numeric(measure_invar$Age)
@@ -1045,7 +1054,7 @@ measure_invar_weak = list()
 measure_invar_strong = list()
 measure_invar_strict = list()
 anova_results = list()
-measure_invar_names = names(measure_invar)[3:8]
+measure_invar_names = names(measure_invar)[4:8]
 for(i in 1:length(measure_invar_names)){
  measure_invar_config[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
  measure_invar_weak[[i]]= cfa(model_2, data = measure_invar, group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
@@ -1054,9 +1063,11 @@ for(i in 1:length(measure_invar_names)){
  anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
 anova_results
-
-
 ```
+
+
+
+
 Concurrent and predictive with suicideal ideation
 Get all three measures into total scores and then one data set
 ```{r}
@@ -1071,17 +1082,17 @@ cor(con_pred)
 Get Measurement invar over time
 Get later too much brain power
 ```{r}
-INQ_b_1 = tlc_data_analysis[,29:34]
+INQ_b_1 = measure_invar[,29:34]
 INQ_b_1$id = rep(0, dim(INQ_b_1)[1])
 
-INQ_b_2 = tlc_data_analysis[,35:40]
+INQ_b_2 = measure_invar[,35:40]
 INQ_b_2 = 8-INQ_b_2
 INQ_b_2$id = rep(0, dim(INQ_b_2)[1])
 
-INQ_d_1 = tlc_data_analysis[,73:78]
+INQ_d_1 = measure_invar[,73:78]
 INQ_d_1$id = rep(1, dim(INQ_d_1)[1])
 
-INQ_d_2 = tlc_data_analysis[,79:84]
+INQ_d_2 = measure_invar[,79:84]
 INQ_d_2 = 8-INQ_d_2
 INQ_d_2$id = rep(1, dim(INQ_d_2)[1])
 
@@ -1118,151 +1129,17 @@ for(i in 1:length(measure_invar_names)){
 anova_results
 
 ```
-RAS psycho
-```{r}
-head(tlc_data_analysis)
-RAS_b_average = tlc_data_analysis[,9:28]
-RAS_b_average$ID = 1:dim(RAS_b_average)[1]
-## Create a variable without any missing data
-library(caret)
-inTrain = createDataPartition(y = RAS_b_average$ID, p = .50, list = FALSE)
-efa_b_RAS = RAS_b_average[inTrain,]
-cfa_b_RAS = RAS_b_average[-inTrain,]
-efa_b_RAS$ID = NULL
-cfa_b_RAS$ID = NULL
-RAS_b_average$ID = NULL
-
-library(psych)
-efa_b_1 = fa(r = efa_b_RAS, nfactors = 1, fm = "gls")
-efa_b_2 = fa(r = efa_b_RAS, nfactors = 2, fm = "gls")
-efa_b_3 = fa(r = efa_b_RAS, nfactors = 3, fm = "gls")
-efa_b_4 = fa(r = efa_b_RAS, nfactors = 4, fm = "gls")
-efa_b_5 = fa(r = efa_b_RAS, nfactors = 5, fm = "gls")
-
-
-anova(efa_b_1, efa_b_2)
-anova(efa_b_2, efa_b_3)
-anova(efa_b_3, efa_b_4)
-anova(efa_b_4, efa_b_5)
-
-fa.diagram(efa_b_5)
-
-####
-vss(efa_b_RAS)
-###
-library(paran)
-efa_b_RAS_complete = na.omit(efa_b_RAS)
-paran(efa_b_RAS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
-
-
-### Try CFA
-#f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
-#q=17,r=18,s=19
-#a,b,c,d,e
-#n=14,o=15,p=16
-
-
-model_1  ='RAS_1_B =~ RAS6_B + RAS7_B + RAS8_B + RAS9_B + RAS10_B + RAS11_B + RAS12_B + RAS13_B + RAS20_B
-RAS_2_B =~  RAS17_B + RAS18_B + RAS19_B
-RAS_3_B =~ RAS1_B + RAS2_B + RAS3_B + RAS4_B + RAS5_B
-RAS_4_B =~ RAS14_B + RAS15_B + RAS16_B '
-
-library(lavaan)
-fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_RAS)
-summary(fit_1, fit.measures = TRUE, standardized = TRUE)
-```
-SSMI Pyscho Not bad
-```{r}
-head(tlc_data_analysis)
-SSMI_b_average = tlc_data_analysis[,41:45]
-SSMI_b_average$ID = 1:dim(SSMI_b_average)[1]
-## Create a variable without any missing data
-library(caret)
-inTrain = createDataPartition(y = SSMI_b_average$ID, p = .50, list = FALSE)
-efa_b_SSMI = SSMI_b_average[inTrain,]
-cfa_b_SSMI = SSMI_b_average[-inTrain,]
-efa_b_SSMI$ID = NULL
-cfa_b_SSMI$ID = NULL
-SSMI_b_average$ID = NULL
-
-library(psych)
-efa_b_1 = fa(r = efa_b_SSMI, nfactors = 1, fm = "gls")
-efa_b_2 = fa(r = efa_b_SSMI, nfactors = 2, fm = "gls")
-efa_b_3 = fa(r = efa_b_SSMI, nfactors = 3, fm = "gls")
-
-anova(efa_b_1, efa_b_2)
-anova(efa_b_2, efa_b_3)
-fa.diagram(efa_b_2)
-
-####
-vss(efa_b_SSMI)
-###
-library(paran)
-efa_b_SSMI_complete = na.omit(efa_b_SSMI)
-paran(efa_b_SSMI_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
-
-
-### Try CFA
-
-model_1  ='SSMI_B =~ SSMI1_B + SSMI2_B + SSMI3_B + SSMI4_B + SSMI5_B'
-
-library(lavaan)
-fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_SSMI)
-summary(fit_1, fit.measures = TRUE, standardized = TRUE)
-```
-SIS Excellent
-```{r}
-head(tlc_data_analysis)
-SIS_b_average = tlc_data_analysis[,46:52]
-SIS_b_average$ID = 1:dim(SIS_b_average)[1]
-## Create a variable without any missing data
-library(caret)
-inTrain = createDataPartition(y = SIS_b_average$ID, p = .50, list = FALSE)
-efa_b_SIS = SIS_b_average[inTrain,]
-cfa_b_SIS = SIS_b_average[-inTrain,]
-efa_b_SIS$ID = NULL
-cfa_b_SIS$ID = NULL
-SIS_b_average$ID = NULL
-
-library(psych)
-efa_b_1 = fa(r = efa_b_SIS, nfactors = 1, fm = "gls")
-efa_b_2 = fa(r = efa_b_SIS, nfactors = 2, fm = "gls")
-efa_b_3 = fa(r = efa_b_SIS, nfactors = 3, fm = "gls")
-
-anova(efa_b_1, efa_b_2)
-anova(efa_b_2, efa_b_3)
-fa.diagram(efa_b_2)
-
-####
-vss(efa_b_SIS)
-###
-library(paran)
-efa_b_SIS_complete = na.omit(efa_b_SIS)
-paran(efa_b_SIS_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
-
-
-### Try CFA
-
-model_1  ='SIS_1_B =~ SIS1_B + SIS2_B + SIS3_B + SIS4_B
-          SIS_2_B =~ + SIS5_B + SIS6_B + SIS7_B'
-
-library(lavaan)
-fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_SIS)
-summary(fit_1, fit.measures = TRUE, standardized = TRUE)
-```
-
-
 Get reliability for two factors, test-retest 
 ```{r}
-inq12_b_fac1 = tlc_data_analysis[,29:34]
+inq12_b_fac1 = measure_invar[,29:34]
 inq12_b_fac1_mean = apply(inq12_b_fac1, 1, mean, na.rm = TRUE)
-inq12_b_fac2 = tlc_data_analysis[,35:40]
+inq12_b_fac2 = measure_invar[,35:40]
 inq12_b_fac2_mean = apply(inq12_b_fac2, 1, mean, na.rm = TRUE)
 
 
-inq12_d_fac1 = tlc_data_analysis[,73:78]
+inq12_d_fac1 = measure_invar[,73:78]
 inq12_d_fac1_mean = apply(inq12_d_fac1, 1, mean, na.rm = TRUE)
-inq12_d_fac2 = tlc_data_analysis[,79:84]
+inq12_d_fac2 = measure_invar[,79:84]
 inq12_d_fac2_mean = apply(inq12_d_fac2, 1, mean, na.rm = TRUE)
 
 summary(omega(inq12_b_fac1))
@@ -1272,6 +1149,11 @@ summary(omega(inq12_b_fac2))
 hist(inq12_b_fac1_mean)
 qqnorm(inq12_b_fac1_mean)
 
-cor.test(inq12_b_fac1_mean, inq12_d_fac1_mean, method = "kendall")
-cor.test(inq12_b_fac2_mean, inq12_d_fac2_mean, method = "kendall")
+length(inq12_d_fac1_mean)
+n_1 = data.frame(inq12_b_fac1_mean, inq12_d_fac1_mean)
+dim(na.omit(n_1))
+n_2 = data.frame(inq12_b_fac2_mean,inq12_d_fac2_mean)
+dim(na.omit(n_2))
+cor.test(inq12_b_fac1_mean, inq12_d_fac1_mean, method = "spearman")
+cor.test(inq12_b_fac2_mean, inq12_d_fac2_mean, method = "spearman")
 ```
