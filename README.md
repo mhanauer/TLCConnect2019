@@ -167,43 +167,9 @@ library(naniar)
 dim(tlc_data_analysis_average)
 var_missing =  miss_var_summary(tlc_data_analysis_average)
 var_missing = data.frame(var_missing)
-write.csv(var_missing, "var_missing.csv", row.names = FALSE)
-#write.csv(var_missing, "var_missing.csv", row.names = FALSE)
-full_n = dim(tlc_data_analysis_average)[1]
-############## Getting rid of anyone who doesn't have at 50% complete data
-quasi_itt =  apply(tlc_data_analysis_average, 1, function(x)(sum(is.na(x))))
-quasi_itt_dat = data.frame(tlc_data_analysis_average,quasi_itt)
-### Threshold is less than 50% 
-quasi_itt_dat = subset(quasi_itt_dat, quasi_itt < dim(quasi_itt_dat)[2]/2)
-quasi_itt_dat$quasi_itt = NULL
-dim(quasi_itt_dat)
-quasi_itt_n = dim(quasi_itt_dat)[1]
-### Percentage of drop for quasi itt
-quasi_itt_missing_rate = 1-(dim(quasi_itt_dat)[1]/dim(tlc_data_analysis_average)[1])
-quasi_itt_missing_rate
-quasi_itt_missing_percent = prop_miss_case(quasi_itt_dat)
-####### 
-tot_dat =  quasi_itt_dat 
-tot_dat = na.omit(tot_dat)
-tot_n = dim(tot_dat)[1]
-tot_missing_rate = 1-(dim(tot_dat)[1]/dim(tlc_data_analysis_average)[1])
-itt_missing_rate = 1-(dim(tot_dat)[1]/dim(quasi_itt_dat)[1])
-
-
-### Put together all results
-missing_results = data.frame(full_n, quasi_itt_n, tot_n, quasi_itt_missing_rate, tot_missing_rate, itt_missing_rate)
-missing_results = round(missing_results, 3)
-missing_results = t(missing_results)
-colnames(missing_results)= "n_percent"
-#### Add a column with explainations for each of them
-explain = c("Total number of participants. Anyone assigned a treatment id.  Could have .1 or larger if that is the only piece of data.", "Total number of participants who have at least 50% of data. This data set still contains missing values.", "Total number of complete cases.", "Percentage of clients who did not complete at least 50% of data.", "Percentage of missing data for overall data set.", "Percentage of missing data using quasi_itt data set.")
-missing_results = data.frame(missing_results, explain)
-
-write.csv(missing_results, "missing_results.csv")
-
-describe.factor(quasi_itt_dat$TXPackageAssigned)
+var_missing
+describe.factor(tlc_data_analysis_average$TXPackageAssigned)
 ### Change to Quasi ITT data set
-tlc_data_analysis_average = quasi_itt_dat
 ```
 Descriptive statistics
 
@@ -213,6 +179,7 @@ Who provided (program staff) what services (modality, type, intensity, duration)
  
  (3) a minimum of  5,660  youth enrolled in the enhanced post-crisis follow-up intervention will complete a safety plan and successfully implement all aspects of the plan at least 80% of the time;
 ```{r}
+
 head(tlc_data_analysis_average)
 ### N 
 dim(tlc_data_analysis_average)
@@ -268,11 +235,14 @@ impute_dat$SexualOrientation = NULL
 impute_dat
 
 
-a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
-compare.density(a.out, var = "SIS_d_2_average")
-summary(a.out)
-disperse(a.out)
-impute_dat_loop = a.out$imputations
+#a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
+#compare.density(a.out, var = "SIS_d_2_average")
+#summary(a.out)
+#disperse(a.out)
+#impute_dat_loop = a.out$imputations
+#saveRDS(impute_dat_loop, "impute_dat_loop_tlc_data_analysis_average.rds")
+setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
+impute_dat_loop = readRDS("impute_dat_loop_tlc_data_analysis_average.rds")
 impute_dat_loop[[1]][,c(2,14:22)]
 impute_dat_loop[[1]][,c(2,5:13)]
 ```
