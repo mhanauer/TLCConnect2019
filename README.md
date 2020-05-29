@@ -235,8 +235,11 @@ impute_dat$SexualOrientation = NULL
 impute_dat
 
 
-#a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
-#compare.density(a.out, var = "SIS_d_2_average")
+a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
+compare.density(a.out, var = "SIS_d_2_average")
+compare.density(a.out, var = "SSMI_d_average")
+compare.density(a.out, var = "SSMI_d_average")
+saveRDS(a.out, "a.out.rds")
 #summary(a.out)
 #disperse(a.out)
 #impute_dat_loop = a.out$imputations
