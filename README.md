@@ -232,22 +232,18 @@ impute_dat$non_white = ifelse(impute_dat$RaceEthnicity == 3,0,1)
 impute_dat$RaceEthnicity = NULL
 impute_dat$sexual_minority = ifelse(impute_dat$SexualOrientation == 5,0,1)
 impute_dat$SexualOrientation = NULL
-impute_dat
+impute_dat[5:22]
 
-
-a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"))
-compare.density(a.out, var = "SIS_d_2_average")
-compare.density(a.out, var = "SSMI_d_average")
-compare.density(a.out, var = "SSMI_d_average")
-saveRDS(a.out, "a.out.rds")
-#summary(a.out)
-#disperse(a.out)
-#impute_dat_loop = a.out$imputations
-#saveRDS(impute_dat_loop, "impute_dat_loop_tlc_data_analysis_average.rds")
+bounds = matrix(c(5,1,5, 6,1,5, 7,1,5, 8,1,5, 9,1,7, 10,1,7, 11,1,9, 12,1,5, 13,1,5, 14,1,5, 15,1,5, 16,1,5, 17,1,5, 18,1,7, 19,1,7, 20,1,9, 21,1,5, 22,1,5),nrow = 18, ncol = 3, byrow = TRUE)
+bounds
+#a.out = amelia(x = impute_dat, m = 5, noms = c("TXPackageAssigned" ,"female", "HispanicLatino", "non_white", "sexual_minority"), idvars = c("YouthID"), bounds = bounds)
 setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
-impute_dat_loop = readRDS("impute_dat_loop_tlc_data_analysis_average.rds")
-impute_dat_loop[[1]][,c(2,14:22)]
-impute_dat_loop[[1]][,c(2,5:13)]
+a.out =  readRDS("a.out_tlc.rds")
+impute_dat_loop = a.out$imputations
+apply(impute_dat_loop$imp1, 2, range)
+compare.density(a.out, var = "SIS_d_1_average")
+compare.density(a.out, var = "SSMI_d_average")
+compare.density(a.out, var = "SSMI_d_average")
 ```
 
 
@@ -269,7 +265,7 @@ tlc_within_d1_dis_t1$TXPackageAssigned = NULL
 library(effsize)
 tlc_within_results_d1_t1 = list()
 for(i in 1:length(tlc_within_d1_base_t1)){
-  tlc_within_results_d1_t1[[i]] = cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d1_t1[[i]] = effsize::cohen.d(tlc_within_d1_dis_t1[[i]], tlc_within_d1_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t1[[i]] = tlc_within_results_d1_t1[[i]][c(3,5)]
 }
 
@@ -289,7 +285,7 @@ tlc_within_d2_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t1 = list()
 for(i in 1:length(tlc_within_d2_base_t1)){
-  tlc_within_results_d2_t1[[i]] = cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d2_t1[[i]] = effsize::cohen.d(tlc_within_d2_dis_t1[[i]], tlc_within_d2_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t1[[i]] = tlc_within_results_d2_t1[[i]][c(3,5)]
 }
 
@@ -309,7 +305,7 @@ tlc_within_d3_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t1 = list()
 for(i in 1:length(tlc_within_d3_base_t1)){
-  tlc_within_results_d3_t1[[i]] = cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d3_t1[[i]] = effsize::cohen.d(tlc_within_d3_dis_t1[[i]], tlc_within_d3_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t1[[i]] = tlc_within_results_d3_t1[[i]][c(3,5)]
 }
 
@@ -329,7 +325,7 @@ tlc_within_d4_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t1 = list()
 for(i in 1:length(tlc_within_d4_base_t1)){
-  tlc_within_results_d4_t1[[i]] = cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d4_t1[[i]] = effsize::cohen.d(tlc_within_d4_dis_t1[[i]], tlc_within_d4_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t1[[i]] = tlc_within_results_d4_t1[[i]][c(3,5)]
 }
 
@@ -350,7 +346,7 @@ tlc_within_d5_dis_t1$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t1 = list()
 for(i in 1:length(tlc_within_d5_base_t1)){
-  tlc_within_results_d5_t1[[i]] = cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d5_t1[[i]] = effsize::cohen.d(tlc_within_d5_dis_t1[[i]], tlc_within_d5_base_t1[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t1[[i]] = tlc_within_results_d5_t1[[i]][c(3,5)]
 }
 
@@ -393,7 +389,7 @@ tlc_within_d1_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t2 = list()
 for(i in 1:length(tlc_within_d1_base_t2)){
-  tlc_within_results_d1_t2[[i]] = cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d1_t2[[i]] = effsize::cohen.d(tlc_within_d1_dis_t2[[i]], tlc_within_d1_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t2[[i]] = tlc_within_results_d1_t2[[i]][c(3,5)]
 }
 
@@ -413,7 +409,7 @@ tlc_within_d2_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t2 = list()
 for(i in 1:length(tlc_within_d2_base_t2)){
-  tlc_within_results_d2_t2[[i]] = cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d2_t2[[i]] = effsize::cohen.d(tlc_within_d2_dis_t2[[i]], tlc_within_d2_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t2[[i]] = tlc_within_results_d2_t2[[i]][c(3,5)]
 }
 
@@ -433,7 +429,7 @@ tlc_within_d3_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t2 = list()
 for(i in 1:length(tlc_within_d3_base_t2)){
-  tlc_within_results_d3_t2[[i]] = cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d3_t2[[i]] = effsize::cohen.d(tlc_within_d3_dis_t2[[i]], tlc_within_d3_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t2[[i]] = tlc_within_results_d3_t2[[i]][c(3,5)]
 }
 
@@ -453,7 +449,7 @@ tlc_within_d4_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t2 = list()
 for(i in 1:length(tlc_within_d4_base_t2)){
-  tlc_within_results_d4_t2[[i]] = cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d4_t2[[i]] = effsize::cohen.d(tlc_within_d4_dis_t2[[i]], tlc_within_d4_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t2[[i]] = tlc_within_results_d4_t2[[i]][c(3,5)]
 }
 
@@ -474,7 +470,7 @@ tlc_within_d5_dis_t2$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t2 = list()
 for(i in 1:length(tlc_within_d5_base_t2)){
-  tlc_within_results_d5_t2[[i]] = cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d5_t2[[i]] = effsize::cohen.d(tlc_within_d5_dis_t2[[i]], tlc_within_d5_base_t2[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t2[[i]] = tlc_within_results_d5_t2[[i]][c(3,5)]
 }
 
@@ -515,7 +511,7 @@ tlc_within_d1_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d1_t3 = list()
 for(i in 1:length(tlc_within_d1_base_t3)){
-  tlc_within_results_d1_t3[[i]] = cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d1_t3[[i]] = effsize::cohen.d(tlc_within_d1_dis_t3[[i]], tlc_within_d1_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d1_t3[[i]] = tlc_within_results_d1_t3[[i]][c(3,5)]
 }
 
@@ -535,7 +531,7 @@ tlc_within_d2_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d2_t3 = list()
 for(i in 1:length(tlc_within_d2_base_t3)){
-  tlc_within_results_d2_t3[[i]] = cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d2_t3[[i]] = effsize::cohen.d(tlc_within_d2_dis_t3[[i]], tlc_within_d2_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d2_t3[[i]] = tlc_within_results_d2_t3[[i]][c(3,5)]
 }
 
@@ -555,7 +551,7 @@ tlc_within_d3_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d3_t3 = list()
 for(i in 1:length(tlc_within_d3_base_t3)){
-  tlc_within_results_d3_t3[[i]] = cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d3_t3[[i]] = effsize::cohen.d(tlc_within_d3_dis_t3[[i]], tlc_within_d3_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d3_t3[[i]] = tlc_within_results_d3_t3[[i]][c(3,5)]
 }
 
@@ -575,7 +571,7 @@ tlc_within_d4_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d4_t3 = list()
 for(i in 1:length(tlc_within_d4_base_t3)){
-  tlc_within_results_d4_t3[[i]] = cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d4_t3[[i]] = effsize::cohen.d(tlc_within_d4_dis_t3[[i]], tlc_within_d4_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d4_t3[[i]] = tlc_within_results_d4_t3[[i]][c(3,5)]
 }
 
@@ -596,7 +592,7 @@ tlc_within_d5_dis_t3$TXPackageAssigned = NULL
 
 tlc_within_results_d5_t3 = list()
 for(i in 1:length(tlc_within_d5_base_t3)){
-  tlc_within_results_d5_t3[[i]] = cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE, conf.level = .95)
+  tlc_within_results_d5_t3[[i]] = effsize::cohen.d(tlc_within_d5_dis_t3[[i]], tlc_within_d5_base_t3[[i]], paired = TRUE, conf.level = .95)
   tlc_within_results_d5_t3[[i]] = tlc_within_results_d5_t3[[i]][c(3,5)]
 }
 
@@ -624,6 +620,11 @@ tlc_within_t3_lower
 
 tlc_within_t3_results = data.frame(cohen_d = tlc_within_t3_cohen_d, upper = tlc_within_t3_upper, lower = tlc_within_t3_lower)
 tlc_within_t3_results = round(tlc_within_t3_results, 3)
+
+compare_complete_missing_within_tlc =  tlc_within_t3_results$cohen_d 
+
+
+
 tlc_within_t3_results$cohen_d = ifelse(tlc_within_t3_results$upper > 0 & tlc_within_t3_results$lower < 0, tlc_within_t3_results$cohen_d, paste0(tlc_within_t3_results$cohen_d, "*"))
 tlc_within_t3_results$ci_95 = paste0(tlc_within_t3_results$lower, sep = ",", tlc_within_t3_results$upper)
 tlc_within_t3_results[,2:3] = NULL
@@ -633,6 +634,88 @@ tlc_within_results = rbind(tlc_within_t1_results, tlc_within_t2_results, tlc_wit
 write.csv(tlc_within_results, "tlc_within_results.csv", row.names = FALSE)
 
 ```
+##################
+TLC Complete within
+##################
+```{r}
+
+impute_dat_complete = na.omit(impute_dat)
+impute_dat_complete$SIS_b_2_average = NULL
+impute_dat_complete$SIS_d_2_average = NULL
+dim(impute_dat_complete)
+#### Treatment 1
+tlc_within_base_t1 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 1)
+head(tlc_within_base_t1)
+tlc_within_dis_t1= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 1)
+head(tlc_within_dis_t1)
+tlc_within_base_t1$TXPackageAssigned = NULL
+tlc_within_dis_t1$TXPackageAssigned = NULL
+tlc_within_base_t1 = as.list(tlc_within_base_t1)
+tlc_within_dis_t1= as.list(tlc_within_dis_t1)
+tlc_within_base_t1_results = list()
+tlc_within_t1_cohen_d = list()
+for(i in 1:length(tlc_within_base_t1)){
+  tlc_within_base_t1_results[[i]] = effsize::cohen.d(tlc_within_dis_t1[[i]], tlc_within_base_t1[[i]] , paired = TRUE,  conf.level = .95, na.rm = TRUE)
+  tlc_within_t1_cohen_d[[i]] = tlc_within_base_t1_results[[i]][c(3)]
+  tlc_within_base_t1_results[[i]] = tlc_within_base_t1_results[[i]][c(3,5)]
+}
+tlc_within_base_t1_results
+tlc_within_t1_cohen_d = unlist(tlc_within_t1_cohen_d)
+mean(abs(tlc_within_t1_cohen_d))
+
+impute_dat_complete = na.omit(impute_dat)
+impute_dat_complete$SIS_b_2_average = NULL
+impute_dat_complete$SIS_d_2_average = NULL
+dim(impute_dat_complete)
+#### Treatment 1
+tlc_within_base_t2 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 2)
+head(tlc_within_base_t2)
+tlc_within_dis_t2= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 2)
+head(tlc_within_dis_t2)
+tlc_within_base_t2$TXPackageAssigned = NULL
+tlc_within_dis_t2$TXPackageAssigned = NULL
+tlc_within_base_t2 = as.list(tlc_within_base_t2)
+tlc_within_dis_t2= as.list(tlc_within_dis_t2)
+tlc_within_base_t2_results = list()
+tlc_within_t2_cohen_d = list()
+for(i in 1:length(tlc_within_base_t2)){
+  tlc_within_base_t2_results[[i]] = effsize::cohen.d(tlc_within_dis_t2[[i]], tlc_within_base_t2[[i]] , paired = TRUE,  conf.level = .95, na.rm = TRUE)
+  tlc_within_t2_cohen_d[[i]] = tlc_within_base_t2_results[[i]][c(3)]
+  tlc_within_base_t2_results[[i]] = tlc_within_base_t2_results[[i]][c(3,5)]
+}
+tlc_within_base_t2_results
+tlc_within_t2_cohen_d = unlist(tlc_within_t2_cohen_d)
+
+impute_dat_complete = na.omit(impute_dat)
+impute_dat_complete$SIS_b_2_average = NULL
+impute_dat_complete$SIS_d_2_average = NULL
+dim(impute_dat_complete)
+#### Treatment 1
+tlc_within_base_t3 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 2)
+head(tlc_within_base_t3)
+tlc_within_dis_t3= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 2)
+head(tlc_within_dis_t3)
+tlc_within_base_t3$TXPackageAssigned = NULL
+tlc_within_dis_t3$TXPackageAssigned = NULL
+tlc_within_base_t3 = as.list(tlc_within_base_t3)
+tlc_within_dis_t3= as.list(tlc_within_dis_t3)
+tlc_within_base_t3_results = list()
+tlc_within_t3_cohen_d = list()
+for(i in 1:length(tlc_within_base_t3)){
+  tlc_within_base_t3_results[[i]] = effsize::cohen.d(tlc_within_dis_t3[[i]], tlc_within_base_t3[[i]] , paired = TRUE,  conf.level = .95, na.rm = TRUE)
+  tlc_within_t3_cohen_d[[i]] = tlc_within_base_t3_results[[i]][c(3)]
+  tlc_within_base_t3_results[[i]] = tlc_within_base_t3_results[[i]][c(3,5)]
+}
+tlc_within_base_t3_results
+tlc_within_t3_cohen_d = unlist(tlc_within_t3_cohen_d)
+
+tlc_within_cohen_d_all = data.frame(tlc_within_base_t1_results, tlc_within_base_t2_results, tlc_within_base_t3_results)
+tlc_within_cohen_d_all = unlist(tlc_within_cohen_d_all) 
+diff_complete_missing_within_tlc =  mean(abs(tlc_within_cohen_d_all)) - mean(abs(compare_complete_missing_within_tlc))
+diff_complete_missing_within_tlc
+```
+
+
 ######################
 Between tlc
 ######################
@@ -762,6 +845,8 @@ ci_95 = paste0(lower, sep=",", upper)
 tlc_between_impute_results = data.frame(t(coefs_ses$q.mi), t(coefs_ses$se.mi), t(p_values), ci_95)
 colnames(tlc_between_impute_results) = c("parameter_estimate", "se", "p_value", "ci_95")
 tlc_between_impute_results[,1:2] = round(tlc_between_impute_results[,1:2], 3)
+compare_tlc_between_impute = tlc_between_impute_results$parameter_estimate
+
 tlc_between_impute_results$parameter_estimate = ifelse(tlc_between_impute_results$p_value < .05, paste0(tlc_between_impute_results$parameter_estimate, "*"), tlc_between_impute_results$parameter_estimate)
 tlc_between_impute_results
 write.csv(tlc_between_impute_results, "tlc_between_impute_results.csv", row.names = FALSE)
@@ -781,6 +866,31 @@ for(i in 1:length(outcomes_tests)){
 }
 shap_results
 ```
+####################
+Between TLC complete
+####################
+```{r}
+out_diff_dat = impute_dat_complete[8:15]-impute_dat_complete[16:23]
+colnames(out_diff_dat) = c("RAS_1_diff", "RAS_2_diff", "RAS_3_diff", "RAS_5_diff", "INQ_1_diff", "INQ_2_diff", "SSMI_diff", "SIS_1_diff")
+out_diff_dat
+out_diff_dat = scale(out_diff_dat)
+out_diff_dat =cbind(impute_dat_complete, out_diff_dat)
+tlc_complete_between_results=lm(cbind(RAS_1_diff, RAS_2_diff,RAS_3_diff, RAS_5_diff, INQ_1_diff, INQ_2_diff, SSMI_diff, SIS_1_diff) ~ factor(TXPackageAssigned), data = out_diff_dat)
+
+tlc_complete_between_results_sum = summary(tlc_complete_between_results)
+
+treat_2_3_out = list()
+for(i in 1:8){
+treat_2_3_out[[i]]= tlc_complete_between_results_sum[i][[1]][[4]][c(2,3),1]
+}
+treat_2_3_out = unlist(treat_2_3_out)
+treat_2_3_out = matrix(treat_2_3_out, ncol = 2, byrow = TRUE)
+treat_2_3_out_mean = mean(abs(unlist(treat_2_3_out)))
+treat_2_3_out_mean
+
+
+```
+
 
 ############################
 Between TLC Contrasts
@@ -882,7 +992,7 @@ lower
 ci_95 = paste0(upper, sep =",", lower)
 ci_95
 est_se_con$ci_95 = ci_95
-est_se_con
+impute_t3_t2_par =  est_se_con$est_con
 est_se_con$est_con = ifelse(est_se_con$p_values < .05, paste0(est_se_con$est_con, "*"), est_se_con$est_con)
 est_se_con$est_con
 est_se_con
@@ -900,6 +1010,42 @@ summary(t)
 
 
 ```
+##############
+Complete contrasts tlc between
+################
+```{r}
+
+mean_con_bewteen_complete_out_tlc = list()
+treat_2_3_out
+mean_con_bewteen_complete_tlc = treat_2_3_out
+mean_con_bewteen_complete_tlc = data.frame(mean_con_bewteen_complete_tlc)
+mean_con_bewteen_complete_tlc = mean_con_bewteen_complete_tlc$X1-mean_con_bewteen_complete_tlc$X2
+mean(abs(mean_con_bewteen_complete_tlc))
+
+```
+
+
+#############################################
+Missing data cleaning and results for between
+#############################################
+```{r}
+
+#### Impute
+impute_t3_t2_par
+compare_tlc_between_impute = cbind(compare_tlc_between_impute, impute_t3_t2_par)
+mean_between_par_impute_tlc = mean(unlist(abs(compare_tlc_between_impute)))
+
+### Complete
+# Parameter one and two
+treat_2_3_out
+mean_con_bewteen_complete_tlc
+mean_between_par_complete_tlc = mean(abs(unlist(mean_con_bewteen_complete_tlc, treat_2_3_out)))
+
+diff_between_par_tlc = mean_between_par_complete_tlc-mean_between_par_impute_tlc
+
+```
+
+
 Just omegas for each construct
 RAS 1,2,3,5; INQ 1,2; SSMI, and SIS 1 and SIS 2.
 ```{r}
