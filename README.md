@@ -241,9 +241,16 @@ setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
 a.out =  readRDS("a.out_tlc.rds")
 impute_dat_loop = a.out$imputations
 apply(impute_dat_loop$imp1, 2, range)
+     
+compare.density(a.out, var = "RAS_d_1_average")
+compare.density(a.out, var = "RAS_d_2_average")
+compare.density(a.out, var = "RAS_d_3_average")
+compare.density(a.out, var = "RAS_d_5_average")
+compare.density(a.out, var = "INQ_d_1_average")
+compare.density(a.out, var = "INQ_d_2_average")
 compare.density(a.out, var = "SIS_d_1_average")
 compare.density(a.out, var = "SSMI_d_average")
-compare.density(a.out, var = "SSMI_d_average")
+
 ```
 
 
@@ -644,9 +651,9 @@ impute_dat_complete$SIS_b_2_average = NULL
 impute_dat_complete$SIS_d_2_average = NULL
 dim(impute_dat_complete)
 #### Treatment 1
-tlc_within_base_t1 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 1)
+tlc_within_base_t1 = subset(impute_dat_complete[,c(2,5:12)], TXPackageAssigned == 1)
 head(tlc_within_base_t1)
-tlc_within_dis_t1= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 1)
+tlc_within_dis_t1= subset(impute_dat_complete[,c(2,13:20)], TXPackageAssigned == 1)
 head(tlc_within_dis_t1)
 tlc_within_base_t1$TXPackageAssigned = NULL
 tlc_within_dis_t1$TXPackageAssigned = NULL
@@ -668,9 +675,9 @@ impute_dat_complete$SIS_b_2_average = NULL
 impute_dat_complete$SIS_d_2_average = NULL
 dim(impute_dat_complete)
 #### Treatment 1
-tlc_within_base_t2 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 2)
+tlc_within_base_t2 = subset(impute_dat_complete[,c(2,5:12)], TXPackageAssigned == 2)
 head(tlc_within_base_t2)
-tlc_within_dis_t2= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 2)
+tlc_within_dis_t2= subset(impute_dat_complete[,c(2,13:20)], TXPackageAssigned == 2)
 head(tlc_within_dis_t2)
 tlc_within_base_t2$TXPackageAssigned = NULL
 tlc_within_dis_t2$TXPackageAssigned = NULL
@@ -691,9 +698,9 @@ impute_dat_complete$SIS_b_2_average = NULL
 impute_dat_complete$SIS_d_2_average = NULL
 dim(impute_dat_complete)
 #### Treatment 1
-tlc_within_base_t3 = subset(impute_dat_complete[,c(2,8:15)], TXPackageAssigned == 2)
+tlc_within_base_t3 = subset(impute_dat_complete[,c(2,5:12)], TXPackageAssigned == 2)
 head(tlc_within_base_t3)
-tlc_within_dis_t3= subset(impute_dat_complete[,c(2,16:23)], TXPackageAssigned == 2)
+tlc_within_dis_t3= subset(impute_dat_complete[,c(2,13:20)], TXPackageAssigned == 2)
 head(tlc_within_dis_t3)
 tlc_within_base_t3$TXPackageAssigned = NULL
 tlc_within_dis_t3$TXPackageAssigned = NULL
@@ -709,7 +716,7 @@ for(i in 1:length(tlc_within_base_t3)){
 tlc_within_base_t3_results
 tlc_within_t3_cohen_d = unlist(tlc_within_t3_cohen_d)
 
-tlc_within_cohen_d_all = data.frame(tlc_within_base_t1_results, tlc_within_base_t2_results, tlc_within_base_t3_results)
+tlc_within_cohen_d_all = data.frame(tlc_within_t1_cohen_d, tlc_within_t2_cohen_d, tlc_within_t3_cohen_d)
 tlc_within_cohen_d_all = unlist(tlc_within_cohen_d_all) 
 diff_complete_missing_within_tlc =  mean(abs(tlc_within_cohen_d_all)) - mean(abs(compare_complete_missing_within_tlc))
 diff_complete_missing_within_tlc
