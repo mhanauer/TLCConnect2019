@@ -1106,6 +1106,7 @@ INQ_b_average = tlc_psycho[,29:40]
 INQ_b_average$ID = 1:dim(INQ_b_average)[1]
 ## Create a variable without any missing data
 library(caret)
+set.seed(123)
 inTrain = createDataPartition(y = INQ_b_average$ID, p = .50, list = FALSE)
 efa_b_inq = INQ_b_average[inTrain,]
 cfa_b_inq = INQ_b_average[-inTrain,]
@@ -1197,6 +1198,7 @@ anova_results
 Concurrent and predictive with suicideal ideation
 Get all three measures into total scores and then one data set
 ```{r}
+measure_invar_names
 con_pred = data.frame(INQ_b_1_average, INQ_b_2_average, SIS_b_1_average, SIS_b_2_average, SIS_d_1_average, SIS_d_2_average)
 head(con_pred)
 library(Hmisc)
