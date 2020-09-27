@@ -1285,3 +1285,66 @@ dim(na.omit(n_2))
 cor.test(inq12_b_fac1_mean, inq12_d_fac1_mean, method = "spearman")
 cor.test(inq12_b_fac2_mean, inq12_d_fac2_mean, method = "spearman")
 ```
+###################################
+IRT analyses
+###################################
+Make sure reverse scoring is applied correctly
+
+Create the data sets first
+INQ_b_1_pyscho = tlc_data_analysis[,29:34]
+INQ_b_2_pyscho = tlc_data_analysis[,35:40]
+```{r}
+INQ_b_average = tlc_psycho[,29:40]
+INQ_b_average
+```
+
+
+```{r}
+
+s <- 'F1 = 1-6
+      F2 = 7-12'
+model_INQ_b<-mirt.model(s)
+model_INQ_b
+#######################################################################
+######################################################################
+#fitting IRT model - graded
+INQ_b_graded = mirt(INQ_b_average, model=model_BAHCS, itemtype = "graded", technical=list(removeEmptyRows=TRUE))
+INQ_b_graded
+
+INQ_b_graded_pcm = mirt(INQ_b_average, model=model_BAHCS, itemtype = "Rasch", technical=list(removeEmptyRows=TRUE))
+
+INQ_b_graded_gpcm<-mirt(INQ_b_average, model=model_BAHCS, itemtype = "gpcm", technical=list(removeEmptyRows=TRUE))
+
+anova(INQ_b_graded,INQ_b_graded_pcm)
+anova(INQ_b_graded_pcm,INQ_b_graded_gpcm)
+
+```
+Use gpcm
+```{r}
+INQ_b_graded_gpcm_fit<-itemfit(INQ_b_graded_gpcm, na.rm=TRUE)
+INQ_b_graded_gpcm_fit
+
+INQ_b_graded_gpcm_fit[,2:4] =round(as.matrix(INQ_b_graded_gpcm_fit[,2:4]), digits=3)
+INQ_b_graded_gpcm_m2_results = INQ_b_graded_gpcm_fit
+p_values <- INQ_b_graded_gpcm_m2_results[,5] #p values are stored in 5th column 
+p_values
+p_values_adj <-p.adjust(p_values, method="BH")
+p_values_adj =  round(p_values_adj, digits=3)
+#combined item fit
+results<-cbind(INQ_b_graded_gpcm_m2_results, p_values_adj)
+results
+```
+Now getting coefficients and plotting
+```{r}
+#getting out coefficients
+INQ_b_graded_gpcm_coef <- coef(INQ_b_graded_gpcm, IRTpars=TRUE, simplify = TRUE)
+BAHCS.coef.graded.c<-coef(INQ_b_graded_gpcm, IRTpars=TRUE, simplify = TRUE)
+
+
+write.csv(BAHCS.coef.graded.c, "BAHCS.coef.graded.c.csv", row.names = FALSE)
+
+#itemplot(model.graded.c,item=3, type="infoSE")
+plot(BAHCS.model.graded.c, type='infoSE', main="BAHCS Test Information and Standard Errors")
+
+```
+
