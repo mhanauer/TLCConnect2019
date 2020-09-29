@@ -14,7 +14,6 @@ Data cleaning
 
 ```{r}
 library(prettyR)
-library(rstanarm)
 setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
 tlc_data = read.csv("TLCConnect_10_1_2019.csv", header = TRUE, na.strings = c(-6,-7,-8,-9))
 head(tlc_data)
@@ -1115,6 +1114,7 @@ cfa_b_inq$ID = NULL
 INQ_b_average$ID = NULL
 
 library(psych)
+# Poly cor produces errors
 efa_b_1 = fa(r = efa_b_inq, nfactors = 1, fm = "gls")
 efa_b_2 = fa(r = efa_b_inq, nfactors = 2, fm = "gls")
 efa_b_3 = fa(r = efa_b_inq, nfactors = 3, fm = "gls")
@@ -1126,29 +1126,19 @@ fa.diagram(efa_b_2)
 fa.diagram(efa_b_3)
 
 ####
-vss(efa_b_inq)
+vss(efa_b_inq, rotate = "oblimin")
 ###
-library(paran)
-efa_b_inq_complete = na.omit(efa_b_inq)
-paran(efa_b_inq_complete, centile = 95, iterations = 1000, graph = TRUE, cfa = TRUE)
+fa.parallel(efa_b_inq, fm = "gls", fa = "fa")
 
 ### Try CFA
 
-model_1  ='INQ12 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B + INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
-
 library(lavaan)
-fit_1 = cfa(model_1, estimator = "MLR", missing = "ML", data = cfa_b_inq)
-summary(fit_1, fit.measures = TRUE, standardized = TRUE)
-
 model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
           INQ12_2 =~ INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
 
-fit_2 = cfa(model_2, estimator = "MLR", missing = "ML", data = cfa_b_inq)
+fit_2 = cfa(model_2, estimator = "WLSMVS", data = cfa_b_inq, ordered = TRUE)
 summary(fit_2, fit.measures = TRUE, standardized = TRUE)
 
-
-fit_2_all = cfa(model_2, estimator = "MLR", missing = "ML", data = INQ_b_average)
-summary(fit_2_all, fit.measures = TRUE, standardized = TRUE)
 
 ```
 Measurement invariance
@@ -1204,12 +1194,12 @@ head(con_pred)
 library(Hmisc)
 con_pred
 rcorr(as.matrix(con_pred), type = "spearman")
-cor(con_pred)
 ```
 
 Get Measurement invar over time
 Get later too much brain power
 ```{r}
+measure_invar = tlc_data_analysis
 INQ_b_1 = measure_invar[,29:34]
 INQ_b_1$id = rep(0, dim(INQ_b_1)[1])
 
@@ -1294,57 +1284,75 @@ Create the data sets first
 INQ_b_1_pyscho = tlc_data_analysis[,29:34]
 INQ_b_2_pyscho = tlc_data_analysis[,35:40]
 ```{r}
-INQ_b_average = tlc_psycho[,29:40]
-INQ_b_average
+irt_inq_b = tlc_psycho[,c(29:40)]
+irt_inq_d = tlc_psycho[,c(73:84)]
+names(irt_inq_d) = names(irt_inq_b)
+irt_inq = rbind(irt_inq_b, irt_inq_d)
+irt_inq
+irt_inq[,c(7:12)] = 8 - irt_inq[,c(7:12)] 
+irt_inq
+### Need to stack half of the variables
+library(naniar)
+prop_miss_case(INQ_b_average)
 ```
-
-
+Maybe try dicot and see if results are better
 ```{r}
-
-s <- 'F1 = 1-6
-      F2 = 7-12'
-model_INQ_b<-mirt.model(s)
-model_INQ_b
+library(mirt)
 #######################################################################
 ######################################################################
 #fitting IRT model - graded
-INQ_b_graded = mirt(INQ_b_average, model=model_BAHCS, itemtype = "graded", technical=list(removeEmptyRows=TRUE))
+INQ_b_graded = mirt(irt_inq, model = 2, itemtype = "graded", technical=list(removeEmptyRows=TRUE))
 INQ_b_graded
 
-INQ_b_graded_pcm = mirt(INQ_b_average, model=model_BAHCS, itemtype = "Rasch", technical=list(removeEmptyRows=TRUE))
 
-INQ_b_graded_gpcm<-mirt(INQ_b_average, model=model_BAHCS, itemtype = "gpcm", technical=list(removeEmptyRows=TRUE))
+INQ_b_graded_pcm = mirt(INQ_b_average, model=model_INQ_b, itemtype = "Rasch", technical=list(removeEmptyRows=TRUE))
+
+INQ_b_graded_gpcm<-mirt(INQ_b_average, model=model_INQ_b, itemtype = "gpcm", technical=list(removeEmptyRows=TRUE))
 
 anova(INQ_b_graded,INQ_b_graded_pcm)
 anova(INQ_b_graded_pcm,INQ_b_graded_gpcm)
 
 ```
-Use gpcm
+Get overall model fit and plot
 ```{r}
-INQ_b_graded_gpcm_fit<-itemfit(INQ_b_graded_gpcm, na.rm=TRUE)
+INQ_b_graded_fit  = M2(INQ_b_graded, type='C2', na.rm=TRUE, theta_lim = c(-3, 3), CI = .95)
+INQ_b_graded_fit
+summary(INQ_b_graded, suppress = 0.25)
+plot(INQ_b_graded_pcm, type = "SE", rotate = "promax", theta_lim  = c(-3, 3))
+
+```
+Item level grm fit
+```{r}
+INQ_b_graded_gpcm_fit<-itemfit(INQ_b_graded, na.rm=TRUE)
 INQ_b_graded_gpcm_fit
 
 INQ_b_graded_gpcm_fit[,2:4] =round(as.matrix(INQ_b_graded_gpcm_fit[,2:4]), digits=3)
-INQ_b_graded_gpcm_m2_results = INQ_b_graded_gpcm_fit
-p_values <- INQ_b_graded_gpcm_m2_results[,5] #p values are stored in 5th column 
+INQ_b_graded_gpcm_fit_results = INQ_b_graded_gpcm_fit
+p_values <- INQ_b_graded_gpcm_fit_results[,5] #p values are stored in 5th column 
 p_values
 p_values_adj <-p.adjust(p_values, method="BH")
 p_values_adj =  round(p_values_adj, digits=3)
 #combined item fit
-results<-cbind(INQ_b_graded_gpcm_m2_results, p_values_adj)
+results<-cbind(INQ_b_graded_gpcm_fit_results, p_values_adj)
 results
 ```
 Now getting coefficients and plotting
 ```{r}
 #getting out coefficients
 INQ_b_graded_gpcm_coef <- coef(INQ_b_graded_gpcm, IRTpars=TRUE, simplify = TRUE)
-BAHCS.coef.graded.c<-coef(INQ_b_graded_gpcm, IRTpars=TRUE, simplify = TRUE)
 
-
-write.csv(BAHCS.coef.graded.c, "BAHCS.coef.graded.c.csv", row.names = FALSE)
 
 #itemplot(model.graded.c,item=3, type="infoSE")
-plot(BAHCS.model.graded.c, type='infoSE', main="BAHCS Test Information and Standard Errors")
+plot(INQ_b_graded_gpcm, type='infoSE', main="BAHCS Test Information and Standard Errors")
+
+list_plots = list()
+count_plots = 1:12
+for(i in 1:length(count_plots)){
+  list_plots[[i]] = itemplot(INQ_b_graded_gpcm,item=count_plots[[i]], type="infoSE")
+}
+list_plots
+itemplot(INQ_b_graded_gpcm,item=1, type="infoSE")
+
 
 ```
 
