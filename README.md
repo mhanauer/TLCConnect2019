@@ -30,11 +30,18 @@ tlc_data_analysis = tlc_data[,c(1,2,5:9, 11, 13:56, 69:112,118,124)]
 tlc_data_analysis = data.frame(tlc_data_analysis, HoursPsychotherapy = tlc_data$HoursPsychotherapy, CurrentlyEngaged  =  tlc_data$CurrentlyEngaged, ReferralsEngaged = tlc_data$ReferralsEngaged, Attend75Referrals = tlc_data$Attend75Referrals, ReferralsProvided = tlc_data$ReferralsProvided, CrisisPlan80Time = tlc_data$CrisisPlan80Time)
 head(tlc_data_analysis)
 #Check all variables are within the ranges
-apply(tlc_data_analysis, 2, function(x){describe.factor(x)})
+tlc_data_analysis$INQ6_B[tlc_data_analysis$INQ6_B == 8] = NA
+apply(tlc_data_analysis[-c(1)], 2, function(x){describe.factor(x,decr.order = FALSE)})
 head(tlc_data_analysis)
 
 ### Generate average scores
 head(tlc_data_analysis)
+
+### Get rid of missing treatments
+tlc_data_analysis$treat_missing = is.na(tlc_data_analysis$TXPackageAssigned)
+tlc_data_analysis = subset(tlc_data_analysis, treat_missing == FALSE)
+dim(tlc_data_analysis)
+tlc_data_analysis$treat_missing = NULL
 
 #f = 6, g = 7, h = 8, I = 9,  j = 10, k = 11, l = 12, m = 13, t = 20
 RAS_b_average = tlc_data_analysis[,9:28]
@@ -142,15 +149,12 @@ PHQ9_diff = tlc_data_analysis$PHQ9_4 - tlc_data_analysis$PHQ9_1
 tlc_data_analysis_average = data.frame(tlc_data_analysis[,c(1,2,4:8, 99:104)], RAS_b_1_average, RAS_b_2_average, RAS_b_3_average, RAS_b_5_average, INQ_b_1_average, INQ_b_2_average, SSMI_b_average, SIS_b_1_average, SIS_b_2_average, PHQ9_b = tlc_data_analysis$PHQ9_1,RAS_d_1_average, RAS_d_2_average, RAS_d_3_average, RAS_d_5_average, INQ_d_1_average, INQ_d_2_average, SSMI_d_average, SIS_d_1_average, SIS_d_2_average,PHQ9_d = tlc_data_analysis$PHQ9_4)
 
 
-### Get rid of missing treatments
-tlc_data_analysis_average$treat_missing = is.na(tlc_data_analysis_average$TXPackageAssigned)
-tlc_data_analysis_average = subset(tlc_data_analysis_average, treat_missing == FALSE)
-dim(tlc_data_analysis_average)
-tlc_data_analysis_average$treat_missing = NULL
+
 
 ### Get rid of EHR vars and PHQ
 tlc_data_analysis_average[,c(8:13, 23,33)] = NULL
 tlc_psycho=  tlc_data_analysis
+dim(tlc_psycho)
 ```
 Evaluate missing data
 Get percentage of missing data for each variable
@@ -1071,11 +1075,11 @@ RAS_b_5_pyscho = RAS_b_pyscho[,14:16]
 summary(omega(RAS_b_5_pyscho))
 
 INQ_b_1_pyscho = tlc_data_analysis[,29:34]
-summary(omega(INQ_b_1_pyscho))
+summary(omega(INQ_b_1_pyscho, poly = TRUE))
 
 INQ_b_2_pyscho = tlc_data_analysis[,35:40]
 INQ_b_2_pyscho = 8-INQ_b_2_pyscho
-summary(omega(INQ_b_2_pyscho))
+summary(omega(INQ_b_2_pyscho, poly = TRUE))
 
 SSMI_b_pyscho = tlc_data_analysis[,41:45]
 summary(omega(SSMI_b_pyscho))
@@ -1192,7 +1196,6 @@ measure_invar_names
 con_pred = data.frame(INQ_b_1_average, INQ_b_2_average, SIS_b_1_average, SIS_b_2_average, SIS_d_1_average, SIS_d_2_average)
 head(con_pred)
 library(Hmisc)
-con_pred
 rcorr(as.matrix(con_pred), type = "spearman")
 ```
 
@@ -1211,7 +1214,6 @@ INQ_d_1 = measure_invar[,73:78]
 INQ_d_1$id = rep(1, dim(INQ_d_1)[1])
 
 INQ_d_2 = measure_invar[,79:84]
-INQ_d_2 = 8-INQ_d_2
 INQ_d_2$id = rep(1, dim(INQ_d_2)[1])
 
 ## Change names to be the same then rbind
@@ -1293,7 +1295,11 @@ irt_inq[,c(7:12)] = 8 - irt_inq[,c(7:12)]
 irt_inq
 ### Need to stack half of the variables
 library(naniar)
-prop_miss_case(INQ_b_average)
+library(prettyR)
+describe.factor(irt_inq$INQ6_B)
+dim(irt_inq_b)[1]
+dim(irt_inq_d)[1]
+#apply(irt_inq, 2, function(x){prettyR::describe.factor(x, decr.order = FALSE)})
 ```
 Maybe try dicot and see if results are better
 ```{r}
@@ -1305,12 +1311,12 @@ INQ_b_graded = mirt(irt_inq, model = 2, itemtype = "graded", technical=list(remo
 INQ_b_graded
 
 
-INQ_b_graded_pcm = mirt(INQ_b_average, model=model_INQ_b, itemtype = "Rasch", technical=list(removeEmptyRows=TRUE))
+#INQ_b_graded_pcm = mirt(irt_inq, model=model_INQ_b, itemtype = "Rasch", technical=list(removeEmptyRows=TRUE))
 
-INQ_b_graded_gpcm<-mirt(INQ_b_average, model=model_INQ_b, itemtype = "gpcm", technical=list(removeEmptyRows=TRUE))
+#INQ_b_graded_gpcm<-mirt(irt_inq, model=model_INQ_b, itemtype = "gpcm", technical=list(removeEmptyRows=TRUE))
 
-anova(INQ_b_graded,INQ_b_graded_pcm)
-anova(INQ_b_graded_pcm,INQ_b_graded_gpcm)
+#anova(INQ_b_graded,INQ_b_graded_pcm)
+#anova(INQ_b_graded_pcm,INQ_b_graded_gpcm)
 
 ```
 Get overall model fit and plot
@@ -1318,41 +1324,58 @@ Get overall model fit and plot
 INQ_b_graded_fit  = M2(INQ_b_graded, type='C2', na.rm=TRUE, theta_lim = c(-3, 3), CI = .95)
 INQ_b_graded_fit
 summary(INQ_b_graded, suppress = 0.25)
-plot(INQ_b_graded_pcm, type = "SE", rotate = "promax", theta_lim  = c(-3, 3))
+plot(INQ_b_graded, type = "score", rotate = "promax", theta_lim  = c(-3, 3))
 
 ```
 Item level grm fit
 ```{r}
-INQ_b_graded_gpcm_fit<-itemfit(INQ_b_graded, na.rm=TRUE)
+INQ_b_graded_grm_fit<-itemfit(INQ_b_graded, na.rm=TRUE)
 INQ_b_graded_gpcm_fit
 
-INQ_b_graded_gpcm_fit[,2:4] =round(as.matrix(INQ_b_graded_gpcm_fit[,2:4]), digits=3)
-INQ_b_graded_gpcm_fit_results = INQ_b_graded_gpcm_fit
-p_values <- INQ_b_graded_gpcm_fit_results[,5] #p values are stored in 5th column 
+INQ_b_graded_grm_fit[,2:4] =round(as.matrix(INQ_b_graded_gpcm_fit[,2:4]), digits=3)
+INQ_b_graded_grm_fit_results = INQ_b_graded_grm_fit
+p_values <- INQ_b_graded_grm_fit_results[,5] #p values are stored in 5th column 
 p_values
 p_values_adj <-p.adjust(p_values, method="BH")
 p_values_adj =  round(p_values_adj, digits=3)
 #combined item fit
-results<-cbind(INQ_b_graded_gpcm_fit_results, p_values_adj)
+results<-cbind(INQ_b_graded_grm_fit_results, p_values_adj)
 results
 ```
 Now getting coefficients and plotting
+A coefs are the spots on the dimensions where the item is most discriminating.
+
 ```{r}
 #getting out coefficients
-INQ_b_graded_gpcm_coef <- coef(INQ_b_graded_gpcm, IRTpars=TRUE, simplify = TRUE)
-
-
-#itemplot(model.graded.c,item=3, type="infoSE")
-plot(INQ_b_graded_gpcm, type='infoSE', main="BAHCS Test Information and Standard Errors")
+INQ_b_graded_coef <- coef(INQ_b_graded, rotate = 'promax', simplify = TRUE)
+INQ_b_graded_coef
 
 list_plots = list()
 count_plots = 1:12
 for(i in 1:length(count_plots)){
-  list_plots[[i]] = itemplot(INQ_b_graded_gpcm,item=count_plots[[i]], type="infoSE")
+  list_plots[[i]] = itemplot(INQ_b_graded,item=count_plots[[i]], rotate = "promax", type="trace", theta_lim = c(-3,3))
 }
 list_plots
-itemplot(INQ_b_graded_gpcm,item=1, type="infoSE")
 
+
+```
+Test this
+```{r}
+## Not run:
+dat <- expand.table(LSAT7)
+x <- mirt(dat, 1)
+coef(x)
+coef(x, IRTpars = TRUE)
+coef(x, simplify = TRUE)
+#with computed information matrix
+x <- mirt(dat, 1, SE = TRUE)
+coef(x)
+coef(x, printSE = TRUE)
+coef(x, as.data.frame = TRUE)
+#two factors
+x2 <- mirt(Science, 2)
+coef(x2)
+coef(x2, rotate = 'varimax', simplify = TRUE)
 
 ```
 
