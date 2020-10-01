@@ -1192,7 +1192,6 @@ anova_results
 Concurrent and predictive with suicideal ideation
 Get all three measures into total scores and then one data set
 ```{r}
-measure_invar_names
 con_pred = data.frame(INQ_b_1_average, INQ_b_2_average, SIS_b_1_average, SIS_b_2_average, SIS_d_1_average, SIS_d_2_average)
 head(con_pred)
 library(Hmisc)
@@ -1330,9 +1329,8 @@ plot(INQ_b_graded, type = "score", rotate = "promax", theta_lim  = c(-3, 3))
 Item level grm fit
 ```{r}
 INQ_b_graded_grm_fit<-itemfit(INQ_b_graded, na.rm=TRUE)
-INQ_b_graded_gpcm_fit
 
-INQ_b_graded_grm_fit[,2:4] =round(as.matrix(INQ_b_graded_gpcm_fit[,2:4]), digits=3)
+INQ_b_graded_grm_fit[,2:4] =round(as.matrix(INQ_b_graded_grm_fit[,2:4]), digits=3)
 INQ_b_graded_grm_fit_results = INQ_b_graded_grm_fit
 p_values <- INQ_b_graded_grm_fit_results[,5] #p values are stored in 5th column 
 p_values
@@ -1353,7 +1351,7 @@ INQ_b_graded_coef
 list_plots = list()
 count_plots = 1:12
 for(i in 1:length(count_plots)){
-  list_plots[[i]] = itemplot(INQ_b_graded,item=count_plots[[i]], rotate = "promax", type="trace", theta_lim = c(-3,3))
+  list_plots[[i]] = itemplot(INQ_b_graded,item=count_plots[[i]], rotate = "promax", type="score", theta_lim = c(-3,3))
 }
 list_plots
 
