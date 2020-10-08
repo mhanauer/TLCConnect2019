@@ -1145,6 +1145,16 @@ summary(fit_2, fit.measures = TRUE, standardized = TRUE)
 
 
 ```
+Try reducing the number of items by three each based on 2 factor EFA with the lowest standardized factor loadings
+```{r}
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
+          INQ12_2 =~  INQ9_B+ INQ10_B + INQ10_B'
+
+fit_2 = cfa(model_2, estimator = "WLSMVS", data = cfa_b_inq, ordered = TRUE)
+summary(fit_2, fit.measures = TRUE, standardized = TRUE)
+```
+
+
 Measurement invariance
 ```{r}
 ### Measurement invariance at base for everything besides time 
