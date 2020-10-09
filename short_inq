@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ##################
 Data cleaning
 ###############
-
+Completed on 10-9-20
 ```{r}
 library(prettyR)
 setwd("P:/Evaluation/TN Lives Count_Connect/Databases")
@@ -158,41 +158,38 @@ dim(tlc_psycho)
 ```
 
 Just omegas for each construct
-RAS 1,2,3,5; INQ 1,2; SSMI, and SIS 1 and SIS 2.
+
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
+          INQ12_2 =~  INQ9_B+ INQ11_B + INQ10_B'
 ```{r}
 library(psych)
 
 RAS_b_pyscho = tlc_data_analysis[,9:28]
 RAS_b_1_pyscho = RAS_b_pyscho[,c(6:13,20)]
-summary(omega(RAS_b_1_pyscho))
 
 RAS_b_2_pyscho = RAS_b_pyscho[,17:19]
-summary(omega(RAS_b_2_pyscho))
 
 RAS_b_3_pyscho = RAS_b_pyscho[,1:5]
-summary(omega(RAS_b_3_pyscho))
 
 RAS_b_5_pyscho = RAS_b_pyscho[,14:16]
-summary(omega(RAS_b_5_pyscho))
 
-INQ_b_1_pyscho = tlc_data_analysis[,29:34]
-summary(omega(INQ_b_1_pyscho, poly = TRUE))
 
-INQ_b_2_pyscho = tlc_data_analysis[,35:40]
-INQ_b_2_pyscho = 8-INQ_b_2_pyscho
-summary(omega(INQ_b_2_pyscho, poly = TRUE))
 
 SSMI_b_pyscho = tlc_data_analysis[,41:45]
-summary(omega(SSMI_b_pyscho))
 
 SIS_b_pyscho = tlc_data_analysis[,46:52]
 
 SIS_b_1_pyscho = SIS_b_pyscho[,1:4]
-summary(omega(SIS_b_1_pyscho))
 
 
 SIS_b_2_pyscho = SIS_b_pyscho[,5:7]
-summary(omega(SIS_b_2_pyscho))
+
+INQ_b_1_pyscho = tlc_data_analysis[,c(29:30, 32)]
+summary(omega(INQ_b_1_pyscho, poly = TRUE))
+
+INQ_b_2_pyscho = tlc_data_analysis[,37:39]
+INQ_b_2_pyscho = 8-INQ_b_2_pyscho
+summary(omega(INQ_b_2_pyscho, poly = TRUE))
 
 
 ```
@@ -204,9 +201,10 @@ Test confirmatory factor because we have support that should be one factor
 Then do invar and see if related to any factors that you included
 
 See Hirschfeld(2014) for details
+
 ```{r}
 head(tlc_psycho)
-INQ_b_average = tlc_psycho[,29:40]
+INQ_b_average = tlc_psycho[,c(29:30, 32, 37:39)]
 INQ_b_average$ID = 1:dim(INQ_b_average)[1]
 ## Create a variable without any missing data
 library(caret)
@@ -248,6 +246,7 @@ summary(fit_2, fit.measures = TRUE, standardized = TRUE)
 ```
 Try reducing the number of items by three each based on 2 factor EFA with the lowest standardized factor loadings
 ```{r}
+library(lavaan)
 model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
           INQ12_2 =~  INQ9_B+ INQ11_B + INQ10_B'
 
@@ -310,8 +309,12 @@ rcorr(as.matrix(con_pred), type = "spearman")
 ```
 
 Get Measurement invar over time
-Get later too much brain power
+
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
+          INQ12_2 =~  INQ9_B+ INQ11_B + INQ10_B'
+
 ```{r}
+measure_invar = tlc_data_analysis
 measure_invar = tlc_data_analysis
 INQ_b_1 = measure_invar[,29:34]
 INQ_b_1$id = rep(0, dim(INQ_b_1)[1])
@@ -344,16 +347,16 @@ measure_invar_strict = list()
 anova_results = list()
 library(lavaan)
 
-model_2  ='INQ12_1 =~ INQ1_B + INQ2_B + INQ3_B + INQ4_B + INQ5_B + INQ6_B
-          INQ12_2 =~ INQ7_B + INQ8_B + INQ9_B+ INQ10_B + INQ10_B + INQ11_B + INQ12_B'
+model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
+          INQ12_2 =~  INQ9_B+ INQ11_B + INQ10_B'
 
 
 measure_invar_names = names(INQ_b_d)[14]
 for(i in 1:length(measure_invar_names)){
- measure_invar_config[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
- measure_invar_weak[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
- measure_invar_strong[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
- measure_invar_strict[[i]]= cfa(model_2, data = INQ_b_d[,1:13], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
+ measure_invar_config[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 10,11, 12, 7)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
+ measure_invar_weak[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
+ measure_invar_strong[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
+ measure_invar_strict[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
  anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
 anova_results
@@ -465,8 +468,6 @@ for(i in 1:length(count_plots)){
   list_plots[[i]] = itemplot(INQ_b_graded,item=count_plots[[i]], rotate = "promax", type="score", theta_lim = c(-3,3))
 }
 list_plots
-
-
 ```
 Test this
 ```{r}
