@@ -354,9 +354,9 @@ model_2  ='INQ12_1 =~ INQ1_B + INQ2_B  + INQ4_B
 measure_invar_names = names(INQ_b_d)[14]
 for(i in 1:length(measure_invar_names)){
  measure_invar_config[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 10,11, 12, 7)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML")
- measure_invar_weak[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
- measure_invar_strong[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
- measure_invar_strict[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
+ measure_invar_weak[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10,12, 7)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal="loadings")
+ measure_invar_strong[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10, 12, 7)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts"))
+ measure_invar_strict[[i]]= cfa(model_2, data = INQ_b_d[,c(1, 2, 4, 9, 11,10, 12, 7)], group = measure_invar_names[[i]], estimator = "MLR", missing = "ML", group.equal=c("loadings", "intercepts", "residuals"))
  anova_results[[i]] = anova(measure_invar_config[[i]], measure_invar_weak[[i]], measure_invar_strong[[i]], measure_invar_strict[[i]])
 }
 anova_results
@@ -364,15 +364,15 @@ anova_results
 ```
 Get reliability for two factors, test-retest 
 ```{r}
-inq12_b_fac1 = measure_invar[,29:34]
+inq12_b_fac1 = measure_invar[,c(29, 30, 32)]
 inq12_b_fac1_mean = apply(inq12_b_fac1, 1, mean, na.rm = TRUE)
-inq12_b_fac2 = measure_invar[,35:40]
+inq12_b_fac2 = measure_invar[,37:39]
 inq12_b_fac2_mean = apply(inq12_b_fac2, 1, mean, na.rm = TRUE)
 
 
-inq12_d_fac1 = measure_invar[,73:78]
+inq12_d_fac1 = measure_invar[,c(73, 74, 76)]
 inq12_d_fac1_mean = apply(inq12_d_fac1, 1, mean, na.rm = TRUE)
-inq12_d_fac2 = measure_invar[,79:84]
+inq12_d_fac2 = measure_invar[,81:83]
 inq12_d_fac2_mean = apply(inq12_d_fac2, 1, mean, na.rm = TRUE)
 
 summary(omega(inq12_b_fac1))
