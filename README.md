@@ -1076,6 +1076,8 @@ summary(omega(RAS_b_5_pyscho))
 
 INQ_b_1_pyscho = tlc_data_analysis[,29:34]
 summary(omega(INQ_b_1_pyscho, poly = TRUE))
+INQ_b_1_pyscho_total = apply(INQ_b_1_pyscho, 1, sum)
+
 
 INQ_b_2_pyscho = tlc_data_analysis[,35:40]
 INQ_b_2_pyscho = 8-INQ_b_2_pyscho
@@ -1310,7 +1312,7 @@ dim(irt_inq_b)[1]
 dim(irt_inq_d)[1]
 #apply(irt_inq, 2, function(x){prettyR::describe.factor(x, decr.order = FALSE)})
 ```
-Maybe try dicot and see if results are better
+Two-dim MIRT model with GRM
 ```{r}
 library(mirt)
 #######################################################################
@@ -1328,6 +1330,16 @@ INQ_b_graded
 #anova(INQ_b_graded_pcm,INQ_b_graded_gpcm)
 
 ```
+Get expected scores
+```{r}
+theta =  matrix(seq(-6,6,.01))
+expected_total_score = expected.test(INQ_b_graded,theta, which.items = c(1:6))
+summary(expected_total_score)
+combine_theta_exp_total_score = cbind(theta, expected_total_score)
+head(combine_theta_exp_total_score, 10)
+```
+
+
 Get overall model fit and plot
 ```{r}
 INQ_b_graded_fit  = M2(INQ_b_graded, type='C2', na.rm=TRUE, theta_lim = c(-3, 3), CI = .95)
@@ -1365,25 +1377,6 @@ for(i in 1:length(count_plots)){
 }
 list_plots
 
-
-```
-Test this
-```{r}
-## Not run:
-dat <- expand.table(LSAT7)
-x <- mirt(dat, 1)
-coef(x)
-coef(x, IRTpars = TRUE)
-coef(x, simplify = TRUE)
-#with computed information matrix
-x <- mirt(dat, 1, SE = TRUE)
-coef(x)
-coef(x, printSE = TRUE)
-coef(x, as.data.frame = TRUE)
-#two factors
-x2 <- mirt(Science, 2)
-coef(x2)
-coef(x2, rotate = 'varimax', simplify = TRUE)
 
 ```
 
