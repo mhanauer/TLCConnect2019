@@ -1332,11 +1332,12 @@ INQ_b_graded
 ```
 Get expected scores
 ```{r}
-theta =  matrix(seq(-6,6,.01))
-expected_total_score = expected.test(INQ_b_graded,theta, which.items = c(1:6))
+theta =  matrix(seq(-3, 3, by  = 1))
+expected_total_score = expected.test(INQ_b_graded,theta, which.items = c(1:12))
 summary(expected_total_score)
 combine_theta_exp_total_score = cbind(theta, expected_total_score)
-head(combine_theta_exp_total_score, 10)
+tail(combine_theta_exp_total_score, 10)
+
 ```
 
 
@@ -1346,6 +1347,7 @@ INQ_b_graded_fit  = M2(INQ_b_graded, type='C2', na.rm=TRUE, theta_lim = c(-3, 3)
 INQ_b_graded_fit
 summary(INQ_b_graded, suppress = 0.25)
 plot(INQ_b_graded, type = "score", rotate = "promax", theta_lim  = c(-3, 3))
+plot(INQ_b_graded, type = "SE", rotate = "promax", theta_lim  = c(-3, 3))
 
 ```
 Item level grm fit
